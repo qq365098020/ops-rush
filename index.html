@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="运营RUSH">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<title>运营RUSH</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0e1a;--bg2:rgba(255,255,255,.04);
+  --glass:rgba(255,255,255,.08);--glass2:rgba(255,255,255,.12);
+  --glass-border:rgba(255,255,255,.12);
+  --text:#e8eaf0;--text2:rgba(255,255,255,.6);--text3:rgba(255,255,255,.35);
+  --red:#ff453a;--red-bg:rgba(255,69,58,.15);--red-glow:rgba(255,69,58,.3);
+  --yellow:#ffd60a;--yellow-bg:rgba(255,214,10,.12);--yellow-glow:rgba(255,214,10,.25);
+  --green:#30d158;--green-bg:rgba(48,209,88,.12);--green-glow:rgba(48,209,88,.25);
+  --blue:#0a84ff;--blue-bg:rgba(10,132,255,.15);
+  --radius:16px;--radius-sm:12px;
+  --safe-top:env(safe-area-inset-top,20px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;background:var(--bg);color:var(--text);font-size:15px;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column}
+
+/* BG gradient */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 0%,rgba(59,130,246,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(139,92,246,.08) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+/* App shell */
+#app{flex:1;display:flex;flex-direction:column;position:relative;z-index:1;overflow:hidden}
+
+/* Header */
+.header{padding:calc(var(--safe-top) + 8px) 20px 12px;text-align:center;position:relative}
+.header h1{font-size:20px;font-weight:700;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px}
+.header .subtitle{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* Pages */
+.page{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 16px 16px;display:none;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+.page.active{display:block;opacity:1;transform:translateY(0)}
+
+/* Sections */
+.section{margin-bottom:20px}
+.section-header{display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer;user-select:none}
+.section-header .icon{font-size:18px}
+.section-header .title{font-size:14px;font-weight:600;letter-spacing:.5px}
+.section-header .count{font-size:11px;background:var(--glass2);padding:2px 8px;border-radius:10px;color:var(--text2)}
+.section-header .arrow{margin-left:auto;font-size:12px;color:var(--text3);transition:transform .3s}
+.section-header.collapsed .arrow{transform:rotate(-90deg)}
+.section-body{transition:max-height .4s ease,opacity .3s;overflow:hidden}
+.section-header.collapsed+.section-body{max-height:0!important;opacity:0}
+
+/* Task cards */
+.task-card{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .3s;position:relative;overflow:hidden}
+.task-card:active{transform:scale(.97)}
+.task-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
+.task-card.severity-red::before{background:linear-gradient(90deg,var(--red),#ff6b6b)}
+.task-card.severity-yellow::before{background:linear-gradient(90deg,var(--yellow),#ffe066)}
+.task-card.severity-green::before{background:linear-gradient(90deg,var(--green),#5ce882)}
+.task-card.overdue{border-color:rgba(255,69,58,.3);box-shadow:0 0 20px rgba(255,69,58,.08)}
+.task-card.overdue.severity-red{animation:pulse-red 2s ease-in-out infinite}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 20px rgba(255,69,58,.08)}50%{box-shadow:0 0 30px rgba(255,69,58,.18)}}
+.task-card .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.task-card .card-name{font-size:15px;font-weight:600;flex:1;line-height:1.3}
+.task-card .card-tag{font-size:10px;padding:3px 8px;border-radius:8px;font-weight:600;white-space:nowrap;margin-left:8px}
+.severity-red .card-tag{background:var(--red-bg);color:var(--red)}
+.severity-yellow .card-tag{background:var(--yellow-bg);color:var(--yellow)}
+.severity-green .card-tag{background:var(--green-bg);color:var(--green)}
+.task-card .card-meta{display:flex;justify-content:space-between;align-items:center}
+.task-card .card-due{font-size:12px;color:var(--text2)}
+.task-card .card-countdown{font-size:12px;font-weight:600}
+.task-card .card-countdown.overdue-text{color:var(--red)}
+.task-card .card-countdown.soon-text{color:var(--yellow)}
+.task-card .card-countdown.ok-text{color:var(--text3)}
+.task-card.frozen{opacity:.45;border-style:dashed}
+.task-card.frozen .card-tag{background:rgba(255,255,255,.06);color:var(--text3)}
+.task-card .frozen-badge{font-size:10px;color:var(--text3);background:rgba(255,255,255,.06);padding:2px 6px;border-radius:6px}
+
+/* Done section */
+.done-card{opacity:.55}
+.done-card .card-name{text-decoration:line-through}
+.done-toggle{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;cursor:pointer;color:var(--text3);font-size:13px}
+.done-toggle .chevron{transition:transform .3s;font-size:10px}
+.done-toggle.open .chevron{transform:rotate(90deg)}
+
+/* Detail Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{background:rgba(18,22,36,.95);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--glass-border);border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding:20px 20px calc(var(--safe-bottom) + 20px);transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1)}
+.modal-overlay.show .modal{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:4px}
+.modal-type{font-size:12px;color:var(--text3);margin-bottom:16px}
+.modal-section{margin-bottom:16px}
+.modal-section-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.modal-info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass);border-radius:var(--radius-sm);margin-bottom:6px}
+.modal-info-row .label{font-size:13px;color:var(--text2)}
+.modal-info-row .value{font-size:14px;font-weight:600}
+.modal-note{background:var(--glass);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap}
+.modal-btn{width:100%;padding:14px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;border:none;cursor:pointer;margin-bottom:8px;transition:transform .15s,opacity .15s}
+.modal-btn:active{transform:scale(.97);opacity:.8}
+.btn-complete{background:linear-gradient(135deg,#30d158,#28a745);color:#fff}
+.btn-reset{background:linear-gradient(135deg,#0a84ff,#5856d6);color:#fff}
+.btn-freeze{background:var(--glass2);color:var(--text)}
+.btn-freeze.frozen{background:rgba(255,214,10,.15);color:var(--yellow)}
+.btn-close{background:var(--glass);color:var(--text2)}
+.btn-delete{background:rgba(255,69,58,.12);color:var(--red)}
+
+/* Input modal */
+.input-modal .modal{padding-bottom:calc(var(--safe-bottom) + 20px)}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.5px;margin-bottom:6px;display:block}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-size:15px;outline:none;transition:border-color .2s;font-family:inherit}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue)}
+.form-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='rgba(255,255,255,0.5)' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.form-select option{background:#1a1e2e;color:var(--text)}
+.form-textarea{min-height:80px;resize:vertical}
+.form-row{display:flex;gap:10px}
+.form-row .form-group{flex:1}
+
+/* Settings */
+.setting-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--glass);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:background .2s}
+.setting-item:active{background:var(--glass2)}
+.setting-item .setting-label{font-size:14px;font-weight:500}
+.setting-item .setting-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.setting-item .setting-arrow{color:var(--text3);font-size:14px}
+.setting-group-title{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:1px;margin:20px 0 8px;text-transform:uppercase}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.stat-card{background:var(--glass);border-radius:var(--radius-sm);padding:14px;text-align:center}
+.stat-num{font-size:24px;font-weight:700}
+.stat-label{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* Bottom nav */
+.bottom-nav{display:flex;justify-content:space-around;align-items:center;padding:8px 0 calc(var(--safe-bottom) + 8px);background:rgba(10,14,26,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);position:relative;z-index:10}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 16px;cursor:pointer;transition:opacity .2s;opacity:.45}
+.nav-item.active{opacity:1}
+.nav-item .nav-icon{font-size:20px}
+.nav-item .nav-label{font-size:10px;font-weight:600;letter-spacing:.3px}
+
+/* Toast */
+.toast{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(40,44,60,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 20px;font-size:14px;font-weight:500;z-index:200;transition:transform .35s cubic-bezier(.32,.72,0,1);white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Empty state */
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty .empty-icon{font-size:40px;margin-bottom:12px}
+.empty .empty-text{font-size:14px}
+
+/* Review history */
+.review-item{padding:10px 14px;background:var(--glass);border-radius:var(--radius-sm);margin-bottom:6px}
+.review-item .review-date{font-size:11px;color:var(--text3)}
+.review-item .review-note{font-size:13px;margin-top:4px}
+
+/* Scrollbar */
+.page::-webkit-scrollbar{width:0}
+
+/* Animations */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.task-card{animation:fadeIn .3s ease both}
+.task-card:nth-child(2){animation-delay:.05s}
+.task-card:nth-child(3){animation-delay:.1s}
+.task-card:nth-child(4){animation-delay:.15s}
+
+/* Confirm dialog */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.confirm-overlay.show{opacity:1;pointer-events:auto}
+.confirm-box{background:rgba(30,34,52,.97);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;width:280px;text-align:center;transform:scale(.9);transition:transform .25s}
+.confirm-overlay.show .confirm-box{transform:scale(1)}
+.confirm-title{font-size:16px;font-weight:600;margin-bottom:8px}
+.confirm-msg{font-size:13px;color:var(--text2);margin-bottom:20px}
+.confirm-btns{display:flex;gap:10px}
+.confirm-btns button{flex:1;padding:10px;border-radius:var(--radius-sm);border:none;font-size:14px;font-weight:600;cursor:pointer}
+.confirm-cancel{background:var(--glass);color:var(--text2)}
+.confirm-ok{background:var(--red);color:#fff}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <h1>⚡ 运营RUSH</h1>
+    <div class="subtitle" id="dateDisplay"></div>
+  </div>
+
+  <!-- Dashboard Page -->
+  <div class="page active" id="pageDashboard">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div id="dashboardContent"></div>
+  </div>
+
+  <!-- Tasks Page -->
+  <div class="page" id="pageTasks">
+    <div id="tasksContent"></div>
+  </div>
+
+  <!-- Add Task Page -->
+  <div class="page" id="pageAdd">
+    <div class="form-group">
+      <label class="form-label">任务名称</label>
+      <input class="form-input" id="addName" placeholder="输入任务名称">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">周期类型</label>
+        <select class="form-select" id="addType">
+          <option value="rolling">滚动周期</option>
+          <option value="monthly_fixed">每月固定日</option>
+          <option value="monthly旬">每旬</option>
+          <option value="monthly_range">每月日期范围</option>
+          <option value="weekly">每周固定天</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">逾期代价</label>
+        <select class="form-select" id="addSeverity">
+          <option value="red">🔴 红色 - 合规追责</option>
+          <option value="yellow">🟡 黄色 - 效率影响</option>
+          <option value="green">🟢 绿色 - 优化类</option>
+        </select>
+      </div>
+    </div>
+    <div id="addTypeConfig"></div>
+    <div class="form-group">
+      <label class="form-label">操作备注（可选，常驻显示）</label>
+      <textarea class="form-textarea" id="addNote" placeholder="输入备注说明..."></textarea>
+    </div>
+    <button class="modal-btn btn-complete" onclick="app.addTask()">添加任务</button>
+  </div>
+
+  <!-- Settings Page -->
+  <div class="page" id="pageSettings">
+    <div class="setting-group-title">数据管理</div>
+    <div class="setting-item" onclick="app.exportData()">
+      <div><div class="setting-label">📤 导出数据</div><div class="setting-desc">导出为 JSON 文件备份</div></div>
+      <div class="setting-arrow">›</div>
+    </div>
+    <div class="setting-item" onclick="document.getElementById('importFile').click()">
+      <div><div class="setting-label">📥 导入数据</div><div class="setting-desc">从 JSON 文件恢复数据</div></div>
+      <div class="setting-arrow">›</div>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="app.importData(event)">
+    <div class="setting-group-title">危险操作</div>
+    <div class="setting-item" onclick="app.confirmReset()">
+      <div><div class="setting-label">🗑️ 重置所有数据</div><div class="setting-desc">清除所有任务和记录，不可恢复</div></div>
+      <div class="setting-arrow">›</div>
+    </div>
+    <div class="setting-group-title">关于</div>
+    <div class="setting-item">
+      <div><div class="setting-label">运营RUSH v1.0</div><div class="setting-desc">专为银行运营主管打造</div></div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-page="pageDashboard"><div class="nav-icon">📊</div><div class="nav-label">看板</div></div>
+    <div class="nav-item" data-page="pageTasks"><div class="nav-icon">📋</div><div class="nav-label">任务</div></div>
+    <div class="nav-item" data-page="pageAdd"><div class="nav-icon">➕</div><div class="nav-label">新增</div></div>
+    <div class="nav-item" data-page="pageSettings"><div class="nav-icon">⚙️</div><div class="nav-label">设置</div></div>
+  </nav>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" id="confirmDialog">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle"></div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="app.closeConfirm()">取消</button>
+      <button class="confirm-ok" id="confirmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DEFAULT TASKS =====
+const DEFAULT_TASKS = [
+  {
+    id:'anti_money_laundering', name:'反洗钱检查', type:'rolling',
+    severity:'red', intervalDays:3, lastCompleted:null,
+    frozen:false, reviews:[], note:'',
+    typeLabel:'滚动 · 每3天', desc:'从上次完成日起计算，满3天未完成则标红预警。周六关门日计入天数。'
+  },
+  {
+    id:'atm_cleaning', name:'ATM清机', type:'rolling',
+    severity:'red', intervalDays:4, lastCompleted:null,
+    frozen:false, reviews:[], note:'',
+    manualResetDates:[], // 行长查库手动重置的时间
+    typeLabel:'滚动 · 每4天', desc:'至少每4天清机一次。完成"每旬查库"会自动重置本任务。行长查库清机请点下方重置按钮。',
+    linkedFrom:'inventory_check'
+  },
+  {
+    id:'atm_register', name:'ATM机登记本', type:'rolling',
+    severity:'yellow', intervalDays:4, lastCompleted:null,
+    frozen:false, reviews:[], note:'',
+    typeLabel:'滚动 · 每4天', desc:'至少每4天登记一次。周六关门日计入天数。'
+  },
+  {
+    id:'inventory_check', name:'每旬查库', type:'旬',
+    severity:'red', lastCompleted:null,
+    frozen:false, reviews:[], note:'',
+    typeLabel:'月度 · 每旬', desc:'每月3次：1-10号、11-20号、21-31号各完成一次。每旬开始即持续提醒。周六关门日截止日顺延。完成本任务会自动重置"ATM清机"计时。',
+    linkTo:'atm_cleaning'
+  },
+  {
+    id:'security_study', name:'安保本学习记录', type:'monthly_range',
+    severity:'yellow', lastCompleted:null,
+    frozen:false, reviews:[], note:'',
+    monthParts:[
+      {label:'第1篇', before:15},
+      {label:'第2篇', after:25}
+    ],
+    typeLabel:'月度 · 2篇/月', desc:'第1篇：15号之前完成。第2篇：25号之后完成（抄中心社内容）。'
+  },
+  {
+    id:'counterfeit_surrender', name:'反假币上缴登记', type:'monthly_fixed',
+    severity:'green', day:1, postponeSat:true,
+    frozen:false, reviews:[], note:'',
+    lastCompleted:null,
+    typeLabel:'月度 · 每月1号', desc:'每月第1个工作日。遇周六顺延至下一工作日。'
+  },
+  {
+    id:'monthly_stats', name:'每月统计业务量', type:'monthly_fixed',
+    severity:'yellow', day:1, postponeSat:true,
+    frozen:false, reviews:[], note:'',
+    lastCompleted:null,
+    typeLabel:'月度 · 每月1号', desc:'每月第1个工作日。遇周六顺延至下一工作日。'
+  },
+  {
+    id:'ticket_binding', name:'装订票', type:'monthly_fixed',
+    severity:'yellow', day:1, postponeSat:true,
+    frozen:false, reviews:[], note:'若当月某周六为网点轮休关门日，需在该日期对应的票据后附加一张说明纸，格式为：网点轮休：北环路分理处 YYYY.MM.DD 周末轮休无票（日期填写实际关门日期）',
+    lastCompleted:null,
+    typeLabel:'月度 · 每月1号', desc:'装订上月全部票据。遇周六顺延。操作备注常驻显示。',
+    hasPersistentNote:true
+  },
+  {
+    id:'subject_print', name:'科目打印 7156/7232/1212/7608/7153', type:'monthly_fixed',
+    severity:'yellow', day:1, postponeSat:true,
+    frozen:false, reviews:[], note:'',
+    lastCompleted:null,
+    typeLabel:'月度 · 每月1号', desc:'遇周六顺延至下一工作日。'
+  },
+  {
+    id:'call_9999', name:'打9999', type:'monthly_multi',
+    severity:'red', days:[25,26,27,1], // 25,26,27,次月1
+    frozen:false, reviews:[], note:'', completions:{},
+    typeLabel:'月度 · 4次/月', desc:'每月25、26、27号及次月1号各打一次，共4次。每次独立标记。'
+  },
+  {
+    id:'balance_print', name:'科目余额查询及打印 1221/2011/2014/2232/2241/2314', type:'monthly_fixed',
+    severity:'red', day:1, postponeSat:true,
+    frozen:false, reviews:[], note:'在6301科目号处依次输入以上6个科目查询余额；有余额的复制账号，在6303中粘贴账号，按整月打印，所有科目打印在同一张纸上，仅在第一页签名。',
+    lastCompleted:null,
+    typeLabel:'月度 · 每月1号', desc:'遇周六顺延至下一工作日。操作备注常驻显示。',
+    hasPersistentNote:true
+  },
+  {
+    id:'personal_security', name:'个人安保学习本', type:'monthly_fixed',
+    severity:'yellow', day:1, postponeSat:true,
+    frozen:false, reviews:[], note:'',
+    lastCompleted:null,
+    typeLabel:'月度 · 每月1号', desc:'每月第1个工作日。遇周六顺延。'
+  },
+  {
+    id:'alarm_test', name:'测试报警器并登记', type:'monthly_flexible',
+    severity:'red', remindFrom:5,
+    frozen:false, reviews:[], note:'',
+    lastCompleted:null,
+    typeLabel:'月度 · 每月1次', desc:'每月完成一次即可。5号起开始提醒，月末未完成标红加急。'
+  },
+  {
+    id:'wall_safety', name:'墙上安全检查', type:'monthly_fixed',
+    severity:'yellow', day:1, postponeSat:true,
+    frozen:false, reviews:[], note:'',
+    lastCompleted:null,
+    typeLabel:'月度 · 每月1号', desc:'每月第1个工作日。遇周六顺延。'
+  },
+  {
+    id:'computer_log', name:'计算机操作日志', type:'weekly',
+    severity:'yellow', weekday:5, // 0=Sun,5=Fri
+    frozen:false, reviews:[], note:'',
+    lastCompleted:null,
+    typeLabel:'每周 · 周五', desc:'每周五提醒，当天未完成则标黄预警。'
+  }
+];
+
+// ===== DATE UTILS =====
+const TODAY = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const fmtDate = d => d ? `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日` : '--';
+const fmtDateShort = d => d ? `${d.getMonth()+1}/${d.getDate()}` : '--';
+const daysBetween = (a,b) => Math.floor((b-a)/(86400000));
+const addDays = (d,n) => { const r=new Date(d); r.setDate(r.getDate()+n); return r; };
+const isSaturday = d => d.getDay()===6;
+const isSunday = d => d.getDay()===0;
+
+// 遇周六顺延到下周一
+function postponeIfSaturday(d){
+  const r = new Date(d);
+  while(isSaturday(r)) r.setDate(r.getDate()+1);
+  // 如果顺延到周日，再顺延到周一
+  while(isSunday(r)) r.setDate(r.getDate()+1);
+  return r;
+}
+
+// 获取本月第1个工作日
+function firstWorkdayOfMonth(year,month){
+  let d = new Date(year,month,1);
+  while(isSaturday(d)||isSunday(d)) d.setDate(d.getDate()+1);
+  return d;
+}
+
+// 获取本月或下月第1个工作日（从指定日期开始找）
+function nextFirstWorkday(fromDate){
+  let d = new Date(fromDate.getFullYear(),fromDate.getMonth(),1);
+  if(d < fromDate) d = new Date(fromDate.getFullYear(),fromDate.getMonth()+1,1);
+  while(isSaturday(d)||isSunday(d)) d.setDate(d.getDate()+1);
+  return d;
+}
+
+// ===== APP CLASS =====
+class App {
+  constructor(){
+    this.tasks = [];
+    this.currentPage = 'pageDashboard';
+    this.doneOpen = {};
+    this.load();
+    this.setupNav();
+    this.setupAddForm();
+    this.updateDate();
+    this.render();
+    setInterval(()=>this.render(),60000);
+  }
+
+  load(){
+    try{
+      const raw = localStorage.getItem('opsrush_data');
+      if(raw){
+        const data = JSON.parse(raw);
+        this.tasks = data.tasks || [];
+        // Merge new default tasks if any
+        const existingIds = new Set(this.tasks.map(t=>t.id));
+        DEFAULT_TASKS.forEach(dt=>{
+          if(!existingIds.has(dt.id)) this.tasks.push(JSON.parse(JSON.stringify(dt)));
+        });
+      } else {
+        this.tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+      }
+    }catch(e){
+      this.tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+    }
+  }
+
+  save(){
+    localStorage.setItem('opsrush_data', JSON.stringify({tasks:this.tasks, savedAt:new Date().toISOString()}));
+  }
+
+  updateDate(){
+    const d = TODAY();
+    const weekdays = ['日','一','二','三','四','五','六'];
+    document.getElementById('dateDisplay').textContent = 
+      `${d.getMonth()+1}月${d.getDate()}日 周${weekdays[d.getDay()]}`;
+  }
+
+  setupNav(){
+    document.querySelectorAll('.nav-item').forEach(item=>{
+      item.addEventListener('click',()=>{
+        const page = item.dataset.page;
+        this.switchPage(page);
+      });
+    });
+    // Close modal on overlay click
+    document.getElementById('detailModal').addEventListener('click',e=>{
+      if(e.target.classList.contains('modal-overlay')) this.closeDetail();
+    });
+  }
+
+  switchPage(page){
+    this.currentPage = page;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(page).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n=>{
+      n.classList.toggle('active',n.dataset.page===page);
+    });
+    if(page==='pageDashboard') this.renderDashboard();
+    if(page==='pageTasks') this.renderTasks();
+  }
+
+  setupAddForm(){
+    const typeSelect = document.getElementById('addType');
+    typeSelect.addEventListener('change',()=>this.renderAddConfig());
+    this.renderAddConfig();
+  }
+
+  renderAddConfig(){
+    const type = document.getElementById('addType').value;
+    const el = document.getElementById('addTypeConfig');
+    let html = '';
+    if(type==='rolling'){
+      html=`<div class="form-group"><label class="form-label">间隔天数</label><input class="form-input" id="addInterval" type="number" min="1" value="3" placeholder="每隔几天完成一次"></div>`;
+    }else if(type==='monthly_fixed'){
+      html=`<div class="form-row"><div class="form-group"><label class="form-label">每月几号</label><input class="form-input" id="addDay" type="number" min="1" max="31" value="1"></div><div class="form-group"><label class="form-label">遇周六顺延</label><select class="form-select" id="addPostpone"><option value="true">是</option><option value="false">否</option></select></div></div>`;
+    }else if(type==='weekly'){
+      html=`<div class="form-group"><label class="form-label">每周几</label><select class="form-select" id="addWeekday"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="0">周日</option></select></div>`;
+    }else if(type==='monthly旬'){
+      html=`<div class="form-group"><label class="form-label">每旬完成一次（自动按1-10/11-20/21-31分配）</label></div>`;
+    }else if(type==='monthly_range'){
+      html=`<div class="form-row"><div class="form-group"><label class="form-label">第N天之前</label><input class="form-input" id="addBefore" type="number" min="1" max="31" value="15"></div><div class="form-group"><label class="form-label">第N天之后</label><input class="form-input" id="addAfter" type="number" min="1" max="31" value="25"></div></div>`;
+    }
+    el.innerHTML = html;
+  }
+
+  // ===== TASK STATUS CALCULATION =====
+  getTaskStatus(task){
+    const today = TODAY();
+    if(task.frozen) return {status:'frozen', label:'已冻结', dueDate:null, daysLeft:null};
+    
+    if(task.type==='rolling'){
+      if(!task.lastCompleted) return {status:'pending', label:'从未完成', dueDate:null, daysLeft:null, overdue:true};
+      const last = new Date(task.lastCompleted);
+      last.setHours(0,0,0,0);
+      const elapsed = daysBetween(last, today);
+      const dueDate = addDays(last, task.intervalDays);
+      const daysLeft = daysBetween(today, dueDate);
+      if(daysLeft < 0) return {status:'overdue', label:`逾期${-daysLeft}天`, dueDate, daysLeft, overdue:true};
+      if(daysLeft===0) return {status:'today', label:'今天到期', dueDate, daysLeft:0, overdue:false};
+      return {status:'ok', label:`还有${daysLeft}天`, dueDate, daysLeft, overdue:false};
+    }
+    
+    if(task.type==='monthly_fixed'||task.type==='monthly_multi'){
+      // For monthly_multi (打9999), check each sub-date
+      if(task.type==='monthly_multi'){
+        return this.getMultiStatus(task, today);
+      }
+      // Find target date this month
+      let target = new Date(today.getFullYear(), today.getMonth(), task.day);
+      if(target < today){
+        target = new Date(today.getFullYear(), today.getMonth()+1, task.day);
+      }
+      if(task.postponeSat) target = postponeIfSaturday(target);
+      // Check if completed this month
+      if(task.lastCompleted){
+        const lc = new Date(task.lastCompleted);
+        lc.setHours(0,0,0,0);
+        // If completed in same month as target, and after target-1 month
+        if(lc >= new Date(target.getFullYear(), target.getMonth(), 1)){
+          // Already completed for this period
+          const nextTarget = new Date(target.getFullYear(), target.getMonth()+1, task.day);
+          if(task.postponeSat) postponeIfSaturday(nextTarget);
+          const daysLeft = daysBetween(today, nextTarget);
+          return {status:'done', label:`已完成 · 下次${fmtDateShort(nextTarget)}`, dueDate:nextTarget, daysLeft, overdue:false};
+        }
+      }
+      const daysLeft = daysBetween(today, target);
+      if(task.remindFrom && today.getDate() < task.remindFrom && daysLeft > 0){
+        return {status:'waiting', label:`${task.remindFrom}号起提醒`, dueDate:target, daysLeft, overdue:false};
+      }
+      if(daysLeft < 0) return {status:'overdue', label:`逾期${-daysLeft}天`, dueDate:target, daysLeft, overdue:true};
+      if(daysLeft===0) return {status:'today', label:'今天到期', dueDate:target, daysLeft:0, overdue:false};
+      return {status:'ok', label:`还有${daysLeft}天`, dueDate:target, daysLeft, overdue:false};
+    }
+    
+    if(task.type==='旬'){
+      return this.get旬Status(task, today);
+    }
+    
+    if(task.type==='monthly_range'){
+      return this.getMonthlyRangeStatus(task, today);
+    }
+    
+    if(task.type==='monthly_flexible'){
+      return this.getFlexibleStatus(task, today);
+    }
+    
+    if(task.type==='weekly'){
+      let target = new Date(today);
+      const diff = (task.weekday - today.getDay() + 7) % 7;
+      if(diff===0 && task.lastCompleted){
+        const lc = new Date(task.lastCompleted); lc.setHours(0,0,0,0);
+        if(daysBetween(lc,today)===0) {
+          // completed today, next is next week
+          target = addDays(today, 7);
+          return {status:'done', label:`已完成 · 下次${fmtDateShort(target)}`, dueDate:target, daysLeft:7, overdue:false};
+        }
+      }
+      target = addDays(today, diff===0 ? 0 : diff);
+      if(task.lastCompleted){
+        const lc = new Date(task.lastCompleted); lc.setHours(0,0,0,0);
+        if(lc >= addDays(today, -today.getDay() + task.weekday) && lc <= today && diff===0){
+          // completed this week's friday
+        }
+      }
+      const daysLeft = diff;
+      if(daysLeft < 0) return {status:'overdue', label:`逾期${-daysLeft}天`, dueDate:target, daysLeft, overdue:true};
+      if(daysLeft===0){
+        if(task.lastCompleted){
+          const lc = new Date(task.lastCompleted); lc.setHours(0,0,0,0);
+          if(daysBetween(lc,today)===0) return {status:'done', label:'已完成', dueDate:target, daysLeft:0, overdue:false};
+        }
+        return {status:'today', label:'今天到期', dueDate:target, daysLeft:0, overdue:false};
+      }
+      return {status:'ok', label:`还有${daysLeft}天`, dueDate:target, daysLeft, overdue:false};
+    }
+    
+    return {status:'unknown', label:'--', dueDate:null, daysLeft:null, overdue:false};
+  }
+
+  get旬Status(task, today){
+    const d = today.getDate();
+    let xunStart, xunEnd;
+    if(d<=10){xunStart=1;xunEnd=10}
+    else if(d<=20){xunStart=11;xunEnd=20}
+    else{xunStart=21;xunEnd=new Date(today.getFullYear(),today.getMonth()+1,0).getDate()}
+    
+    // Check if completed this旬
+    if(task.lastCompleted){
+      const lc = new Date(task.lastCompleted); lc.setHours(0,0,0,0);
+      const lcD = lc.getDate();
+      const sameMonth = lc.getFullYear()===today.getFullYear() && lc.getMonth()===today.getMonth();
+      if(sameMonth){
+        if(d<=10 && lcD>=1 && lcD<=10){
+          return {status:'done', label:'本旬已完成', dueDate:null, daysLeft:null, overdue:false};
+        }
+        if(d>10 && d<=20 && lcD>=11 && lcD<=20){
+          return {status:'done', label:'本旬已完成', dueDate:null, daysLeft:null, overdue:false};
+        }
+        if(d>20 && lcD>=21){
+          return {status:'done', label:'本旬已完成', dueDate:null, daysLeft:null, overdue:false};
+        }
+      }
+    }
+    // Not completed this旬
+    // 旬结束日遇周六顺延
+    let xunEndTarget = new Date(today.getFullYear(), today.getMonth(), xunEnd);
+    if(isSaturday(xunEndTarget)) xunEndTarget = postponeIfSaturday(xunEndTarget);
+    // 如果顺延到下个月，实际截止日就是旬末
+    const daysLeft = daysBetween(today, xunEndTarget);
+    return {status:'overdue', label:`本旬待完成`, dueDate:xunEndTarget, daysLeft, overdue:false, isXun:true};
+  }
+
+  getMultiStatus(task, today){
+    // 打9999: 25,26,27,1 四个独立节点
+    const month = today.getMonth();
+    const year = today.getFullYear();
+    let pending = [];
+    let allDone = true;
+    
+    task.days.forEach(day=>{
+      let target;
+      if(day===1){
+        // 次月1号
+        target = new Date(year, month+1, 1);
+      } else {
+        target = new Date(year, month, day);
+        if(target < today && day !== 1) target = new Date(year, month+1, day);
+      }
+      if(target < today && day===1) target = new Date(year, month+1, 1);
+      
+      const key = `${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;
+      const done = task.completions && task.completions[key];
+      if(!done) {
+        allDone = false;
+        const dl = daysBetween(today, target);
+        pending.push({target, daysLeft:dl, overdue:dl<0});
+      }
+    });
+    
+    if(pending.length===0) return {status:'done', label:'本月全部完成', dueDate:null, daysLeft:null, overdue:false};
+    
+    // Find the most urgent
+    pending.sort((a,b)=>a.daysLeft-b.daysLeft);
+    const urgent = pending[0];
+    if(urgent.overdue) return {status:'overdue', label:`逾期${-urgent.daysLeft}天 · 还有${pending.length}次`, dueDate:urgent.target, daysLeft:urgent.daysLeft, overdue:true};
+    if(urgent.daysLeft===0) return {status:'today', label:`今天到期 · 还剩${pending.length}次`, dueDate:urgent.target, daysLeft:0, overdue:false};
+    return {status:'ok', label:`还有${urgent.daysLeft}天 · 还剩${pending.length}次`, dueDate:urgent.target, daysLeft:urgent.daysLeft, overdue:false};
+  }
+
+  getMonthlyRangeStatus(task, today){
+    // 安保本学习: 15号前1篇, 25号后1篇
+    const month = today.getMonth();
+    const year = today.getFullYear();
+    const parts = task.monthParts || [{label:'第1篇',before:15},{label:'第2篇',after:25}];
+    
+    // Check completions per month-part
+    if(!task.partCompletions) task.partCompletions = {};
+    const monthKey = `${year}-${month}`;
+    
+    let pendingParts = [];
+    parts.forEach((part,i)=>{
+      const key = `${monthKey}-${i}`;
+      if(!task.partCompletions[key]){
+        let target;
+        if(part.before){
+          target = new Date(year, month, part.before);
+        } else if(part.after){
+          target = new Date(year, month, part.after);
+          // 如果今天还没到after日，target就是after日
+          // 如果已经过了，target就是月末
+        }
+        const daysLeft = daysBetween(today, target);
+        pendingParts.push({label:part.label, target, daysLeft, overdue:part.before ? daysLeft < 0 : false});
+      }
+    });
+    
+    if(pendingParts.length===0) return {status:'done', label:'本月已完成', dueDate:null, daysLeft:null, overdue:false};
+    
+    pendingParts.sort((a,b)=>a.daysLeft-b.daysLeft);
+    const urgent = pendingParts[0];
+    if(urgent.overdue) return {status:'overdue', label:`${urgent.label}逾期${-urgent.daysLeft}天`, dueDate:urgent.target, daysLeft:urgent.daysLeft, overdue:true};
+    return {status:'ok', label:`${urgent.label} 还有${urgent.daysLeft}天`, dueDate:urgent.target, daysLeft:urgent.daysLeft, overdue:false};
+  }
+
+  getFlexibleStatus(task, today){
+    // 测试报警器: 每月完成1次, 5号起提醒
+    const month = today.getMonth();
+    const year = today.getFullYear();
+    if(task.lastCompleted){
+      const lc = new Date(task.lastCompleted); lc.setHours(0,0,0,0);
+      if(lc.getFullYear()===year && lc.getMonth()===month){
+        return {status:'done', label:'本月已完成', dueDate:null, daysLeft:null, overdue:false};
+      }
+    }
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const monthEnd = new Date(year, month, daysInMonth);
+    const daysLeft = daysBetween(today, monthEnd);
+    if(today.getDate() < task.remindFrom){
+      return {status:'waiting', label:`${task.remindFrom}号起提醒`, dueDate:monthEnd, daysLeft, overdue:false};
+    }
+    if(daysLeft <= 0) return {status:'overdue', label:'本月未完成！', dueDate:monthEnd, daysLeft, overdue:true};
+    if(daysLeft <= 5) return {status:'soon', label:`月末还剩${daysLeft}天`, dueDate:monthEnd, daysLeft, overdue:false};
+    return {status:'ok', label:`还有${daysLeft}天`, dueDate:monthEnd, daysLeft, overdue:false};
+  }
+
+  // ===== COMPLETE TASK =====
+  completeTask(taskId){
+    const task = this.tasks.find(t=>t.id===taskId);
+    if(!task) return;
+    const today = TODAY();
+    const now = new Date().toISOString();
+    
+    if(task.type==='monthly_multi'){
+      // Mark current period's nearest pending
+      const month = today.getMonth();
+      const year = today.getFullYear();
+      if(!task.completions) task.completions = {};
+      for(const day of task.days){
+        let target;
+        if(day===1) target = new Date(year, month+1, 1);
+        else target = new Date(year, month, day);
+        if(target < today) target = new Date(year, month+1, day);
+        if(day===1 && target < today) target = new Date(year, month+1, 1);
+        const key = `${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;
+        if(!task.completions[key]){
+          task.completions[key] = now;
+          break;
+        }
+      }
+    } else if(task.type==='monthly_range'){
+      if(!task.partCompletions) task.partCompletions = {};
+      const monthKey = `${today.getFullYear()}-${today.getMonth()}`;
+      const parts = task.monthParts || [];
+      for(let i=0;i<parts.length;i++){
+        const key = `${monthKey}-${i}`;
+        if(!task.partCompletions[key]){
+          task.partCompletions[key] = now;
+          break;
+        }
+      }
+    } else {
+      task.lastCompleted = now;
+    }
+    
+    // Link: 完成每旬查库 → 重置ATM清机
+    if(task.linkTo){
+      const linked = this.tasks.find(t=>t.id===task.linkTo);
+      if(linked){
+        linked.lastCompleted = now;
+        this.toast('✅ 已联动重置 ATM清机 计时');
+      }
+    }
+    
+    this.save();
+    this.render();
+    this.toast('✅ 任务已完成');
+  }
+
+  // Manual reset (ATM清机)
+  manualReset(taskId){
+    const task = this.tasks.find(t=>t.id===taskId);
+    if(!task) return;
+    const now = new Date().toISOString();
+    task.lastCompleted = now;
+    if(!task.manualResetDates) task.manualResetDates = [];
+    task.manualResetDates.push(now);
+    this.save();
+    this.render();
+    this.openDetail(taskId);
+    this.toast('✅ 已重置计时');
+  }
+
+  // Freeze/Unfreeze
+  toggleFreeze(taskId){
+    const task = this.tasks.find(t=>t.id===taskId);
+    if(!task) return;
+    task.frozen = !task.frozen;
+    this.save();
+    this.render();
+    this.openDetail(taskId);
+    this.toast(task.frozen ? '❄️ 任务已冻结' : '🔥 任务已解冻');
+  }
+
+  // Add review
+  addReview(taskId, note){
+    const task = this.tasks.find(t=>t.id===taskId);
+    if(!task || !note.trim()) return;
+    if(!task.reviews) task.reviews = [];
+    task.reviews.unshift({date:new Date().toISOString(), note:note.trim()});
+    this.save();
+    this.openDetail(taskId);
+    this.toast('📝 备注已保存');
+  }
+
+  // ===== RENDER =====
+  render(){
+    this.renderDashboard();
+    this.renderTasks();
+  }
+
+  renderDashboard(){
+    const today = TODAY();
+    const active = this.tasks.filter(t=>!t.frozen);
+    const frozen = this.tasks.filter(t=>t.frozen);
+    
+    // Categorize
+    const overdue = [];
+    const upcoming = []; // today or within 3 days
+    const done = [];
+    
+    active.forEach(task=>{
+      const s = this.getTaskStatus(task);
+      task._status = s;
+      if(s.status==='overdue') overdue.push(task);
+      else if(s.status==='today' || s.status==='soon' || (s.daysLeft!==null && s.daysLeft<=3)) upcoming.push(task);
+      else if(s.status==='done') done.push(task);
+      else if(s.status==='ok') upcoming.push(task); // show upcoming in yellow section
+      else if(s.status==='waiting') {} // don't show
+      else if(s.status==='pending') overdue.push(task); // never completed = overdue
+    });
+    
+    // Sort overdue by severity
+    const sevOrder = {red:0,yellow:1,green:2};
+    overdue.sort((a,b)=>(sevOrder[a.severity]||3)-(sevOrder[b.severity]||3));
+    upcoming.sort((a,b)=>{
+      if(a._status.daysLeft===null) return 1;
+      if(b._status.daysLeft===null) return -1;
+      return a._status.daysLeft - b._status.daysLeft;
+    });
+    
+    // Stats
+    const totalActive = active.length;
+    const overdueCount = overdue.length;
+    const doneCount = done.length;
+    
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="stat-num" style="color:var(--red)">${overdueCount}</div><div class="stat-label">待处理</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--yellow)">${upcoming.length}</div><div class="stat-label">进行中</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--green)">${doneCount}</div><div class="stat-label">已完成</div></div>
+    `;
+    
+    let html = '';
+    
+    // Overdue section
+    html += `<div class="section">
+      <div class="section-header ${overdue.length?'':'collapsed'}" onclick="this.classList.toggle('collapsed')">
+        <span class="icon">🔴</span><span class="title">已逾期</span><span class="count">${overdue.length}</span><span class="arrow">▼</span>
+      </div>
+      <div class="section-body" style="max-height:${overdue.length*120}px">
+        ${overdue.length ? overdue.map(t=>this.renderCard(t)).join('') : '<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">没有逾期任务</div></div>'}
+      </div>
+    </div>`;
+    
+    // Upcoming section
+    const upcomingActive = upcoming.filter(t=>t._status.status!=='done');
+    const doneTasks = [...upcoming.filter(t=>t._status.status==='done'), ...done];
+    
+    html += `<div class="section">
+      <div class="section-header" onclick="this.classList.toggle('collapsed')">
+        <span class="icon">🟡</span><span class="title">进行中</span><span class="count">${upcomingActive.length}</span><span class="arrow">▼</span>
+      </div>
+      <div class="section-body" style="max-height:${upcomingActive.length*120}px">
+        ${upcomingActive.length ? upcomingActive.map(t=>this.renderCard(t)).join('') : '<div class="empty"><div class="empty-icon">✨</div><div class="empty-text">暂无进行中任务</div></div>'}
+      </div>
+    </div>`;
+    
+    // Done section (collapsible)
+    html += `<div class="section">
+      <div class="section-header collapsed" onclick="this.classList.toggle('collapsed')">
+        <span class="icon">✅</span><span class="title">本月已完成</span><span class="count">${doneTasks.length}</span><span class="arrow">▼</span>
+      </div>
+      <div class="section-body" style="max-height:0">
+        ${doneTasks.map(t=>this.renderCard(t,true)).join('')}
+      </div>
+    </div>`;
+    
+    // Frozen
+    if(frozen.length){
+      html += `<div class="section">
+        <div class="section-header collapsed" onclick="this.classList.toggle('collapsed')">
+          <span class="icon">❄️</span><span class="title">已冻结</span><span class="count">${frozen.length}</span><span class="arrow">▼</span>
+        </div>
+        <div class="section-body" style="max-height:0">
+          ${frozen.map(t=>this.renderCard(t)).join('')}
+        </div>
+      </div>`;
+    }
+    
+    document.getElementById('dashboardContent').innerHTML = html;
+  }
+
+  renderCard(task, isDone=false){
+    const s = task._status || this.getTaskStatus(task);
+    const sevClass = `severity-${task.severity}`;
+    const overdue = s.overdue && !task.frozen;
+    const frozenClass = task.frozen ? 'frozen' : '';
+    const doneClass = isDone && s.status==='done' ? 'done-card' : '';
+    
+    let countdownClass = 'ok-text';
+    if(s.overdue) countdownClass = 'overdue-text';
+    else if(s.daysLeft!==null && s.daysLeft<=3) countdownClass = 'soon-text';
+    
+    return `<div class="task-card ${sevClass} ${overdue?'overdue':''} ${frozenClass} ${doneClass}" onclick="app.openDetail('${task.id}')">
+      <div class="card-top">
+        <div class="card-name">${task.name}</div>
+        ${task.frozen ? '<span class="frozen-badge">❄️ 冻结</span>' : `<span class="card-tag">${this.sevLabel(task.severity)}</span>`}
+      </div>
+      <div class="card-meta">
+        <div class="card-due">${s.dueDate ? '截止 '+fmtDateShort(s.dueDate) : (s.label||'')}</div>
+        <div class="card-countdown ${countdownClass}">${s.label}</div>
+      </div>
+    </div>`;
+  }
+
+  sevLabel(s){return {red:'🔴 必须',yellow:'🟡 重要',green:'🟢 建议'}[s]||s}
+
+  renderTasks(){
+    const groups = {
+      rolling:{label:'🔄 滚动任务',tasks:[]},
+      monthly:{label:'📅 月度任务',tasks:[]},
+      weekly:{label:'📆 每周任务',tasks:[]}
+    };
+    this.tasks.forEach(t=>{
+      if(t.type==='weekly') groups.weekly.tasks.push(t);
+      else groups.monthly.tasks.push(t);
+    });
+    
+    let html = '';
+    Object.entries(groups).forEach(([key,group])=>{
+      if(!group.tasks.length) return;
+      html += `<div class="section">
+        <div class="section-header" onclick="this.classList.toggle('collapsed')">
+          <span class="title">${group.label}</span><span class="count">${group.tasks.length}</span><span class="arrow">▼</span>
+        </div>
+        <div class="section-body" style="max-height:${group.tasks.length*120}px">
+          ${group.tasks.map(t=>{
+            const s = this.getTaskStatus(t);
+            t._status = s;
+            return this.renderCard(t);
+          }).join('')}
+        </div>
+      </div>`;
+    });
+    document.getElementById('tasksContent').innerHTML = html;
+  }
+
+  // ===== DETAIL MODAL =====
+  openDetail(taskId){
+    const task = this.tasks.find(t=>t.id===taskId);
+    if(!task) return;
+    const s = this.getTaskStatus(task);
+    
+    let html = `<div class="modal-title">${task.name}</div>
+      <div class="modal-type">${task.typeLabel || task.type}</div>`;
+    
+    // Status info
+    html += `<div class="modal-section">
+      <div class="modal-section-title">状态</div>
+      <div class="modal-info-row">
+        <span class="label">当前状态</span>
+        <span class="value" style="color:${s.overdue?'var(--red)':s.status==='done'?'var(--green)':'var(--text)'}">${s.label}</span>
+      </div>
+      ${s.dueDate ? `<div class="modal-info-row">
+        <span class="label">截止日期</span>
+        <span class="value">${fmtDate(s.dueDate)}</span>
+      </div>` : ''}
+      <div class="modal-info-row">
+        <span class="label">逾期代价</span>
+        <span class="value" style="color:var(--${task.severity})">${this.sevLabel(task.severity)}</span>
+      </div>
+      ${task.lastCompleted ? `<div class="modal-info-row">
+        <span class="label">上次完成</span>
+        <span class="value">${fmtDate(new Date(task.lastCompleted))}</span>
+      </div>` : ''}
+    </div>`;
+    
+    // Description
+    if(task.desc){
+      html += `<div class="modal-section">
+        <div class="modal-section-title">说明</div>
+        <div class="modal-note">${task.desc}</div>
+      </div>`;
+    }
+    
+    // Persistent note
+    if(task.hasPersistentNote && task.note){
+      html += `<div class="modal-section">
+        <div class="modal-section-title">📋 操作备注（常驻）</div>
+        <div class="modal-note">${task.note}</div>
+      </div>`;
+    }
+    
+    // ATM清机 special: manual reset button
+    if(task.id==='atm_cleaning'){
+      html += `<div class="modal-section">
+        <button class="modal-btn btn-reset" onclick="app.manualReset('${task.id}')">🔄 重置计时（行长查库清机）</button>
+        ${task.manualResetDates && task.manualResetDates.length ? `<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px">上次手动重置：${fmtDate(new Date(task.manualResetDates[task.manualResetDates.length-1]))}</div>` : ''}
+      </div>`;
+    }
+    
+    // 打9999 special: show each sub-date status
+    if(task.type==='monthly_multi'){
+      const month = new Date().getMonth();
+      const year = new Date().getFullYear();
+      html += `<div class="modal-section"><div class="modal-section-title">各节点状态</div>`;
+      task.days.forEach(day=>{
+        let target;
+        if(day===1) target = new Date(year, month+1, 1);
+        else target = new Date(year, month, day);
+        const key = `${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;
+        const done = task.completions && task.completions[key];
+        html += `<div class="modal-info-row">
+          <span class="label">${fmtDate(target)}</span>
+          <span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ 已完成':'⬜ 待完成'}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    
+    // 月度范围 special
+    if(task.type==='monthly_range'){
+      const month = new Date().getMonth();
+      const year = new Date().getFullYear();
+      const monthKey = `${year}-${month}`;
+      if(!task.partCompletions) task.partCompletions = {};
+      html += `<div class="modal-section"><div class="modal-section-title">各篇状态</div>`;
+      (task.monthParts||[]).forEach((part,i)=>{
+        const key = `${monthKey}-${i}`;
+        const done = task.partCompletions[key];
+        html += `<div class="modal-info-row">
+          <span class="label">${part.label} ${part.before?part.before+'号前':'25号后'}</span>
+          <span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ 已完成':'⬜ 待完成'}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    
+    // Review input
+    html += `<div class="modal-section">
+      <div class="modal-section-title">添加复盘备注</div>
+      <div style="display:flex;gap:8px">
+        <input class="form-input" id="reviewInput" placeholder="一句话备注..." style="flex:1">
+        <button class="modal-btn btn-complete" style="width:auto;padding:12px 20px;margin:0" onclick="app.addReview('${task.id}',document.getElementById('reviewInput').value)">保存</button>
+      </div>
+    </div>`;
+    
+    // Review history
+    if(task.reviews && task.reviews.length){
+      html += `<div class="modal-section">
+        <div class="modal-section-title">历史备注</div>
+        ${task.reviews.slice(0,10).map(r=>`<div class="review-item"><div class="review-date">${fmtDate(new Date(r.date))}</div><div class="review-note">${r.note}</div></div>`).join('')}
+      </div>`;
+    }
+    
+    // Action buttons
+    html += `<div class="modal-section">`;
+    if(task.type==='monthly_multi'){
+      html += `<button class="modal-btn btn-complete" onclick="app.completeTask('${task.id}');app.openDetail('${task.id}')">✅ 完成一个节点</button>`;
+    } else if(task.type==='monthly_range'){
+      html += `<button class="modal-btn btn-complete" onclick="app.completeTask('${task.id}');app.openDetail('${task.id}')">✅ 完成一篇</button>`;
+    } else {
+      html += `<button class="modal-btn btn-complete" onclick="app.completeTask('${task.id}');app.closeDetail()">✅ 标记完成</button>`;
+    }
+    
+    if(task.id!=='atm_cleaning'){ // ATM清机的重置已在上方
+      // no separate reset for other tasks
+    }
+    
+    html += `<button class="modal-btn ${task.frozen?'btn-freeze frozen':'btn-freeze'}" onclick="app.toggleFreeze('${task.id}')">${task.frozen?'🔥 解冻任务':'❄️ 冻结任务'}</button>`;
+    
+    // Delete (only for custom tasks)
+    if(!DEFAULT_TASKS.find(d=>d.id===task.id)){
+      html += `<button class="modal-btn btn-delete" onclick="app.deleteTask('${task.id}')">🗑️ 删除任务</button>`;
+    }
+    
+    html += `<button class="modal-btn btn-close" onclick="app.closeDetail()">关闭</button></div>`;
+    
+    document.getElementById('detailContent').innerHTML = html;
+    document.getElementById('detailModal').classList.add('show');
+  }
+
+  closeDetail(){
+    document.getElementById('detailModal').classList.remove('show');
+  }
+
+  // ===== ADD TASK =====
+  addTask(){
+    const name = document.getElementById('addName').value.trim();
+    if(!name){this.toast('⚠️ 请输入任务名称');return;}
+    
+    const type = document.getElementById('addType').value;
+    const severity = document.getElementById('addSeverity').value;
+    const note = document.getElementById('addNote').value.trim();
+    
+    const task = {
+      id:'custom_'+Date.now(),
+      name, type, severity,
+      frozen:false, reviews:[], note:'',
+      lastCompleted:null
+    };
+    
+    if(type==='rolling'){
+      task.intervalDays = parseInt(document.getElementById('addInterval')?.value) || 3;
+      task.typeLabel = `滚动 · 每${task.intervalDays}天`;
+      task.desc = `每隔${task.intervalDays}天完成一次`;
+    } else if(type==='monthly_fixed'){
+      task.day = parseInt(document.getElementById('addDay')?.value) || 1;
+      task.postponeSat = document.getElementById('addPostpone')?.value === 'true';
+      task.typeLabel = `月度 · 每月${task.day}号`;
+      task.desc = `每月${task.day}号${task.postponeSat?'，遇周六顺延':''}`;
+    } else if(type==='weekly'){
+      task.weekday = parseInt(document.getElementById('addWeekday')?.value) || 5;
+      const dayNames = ['日','一','二','三','四','五','六'];
+      task.typeLabel = `每周 · 周${dayNames[task.weekday]}`;
+      task.desc = `每周${dayNames[task.weekday]}完成`;
+    } else if(type==='monthly旬'){
+      task.type = '旬';
+      task.typeLabel = '月度 · 每旬';
+      task.desc = '每月3次，每旬完成一次';
+    } else if(type==='monthly_range'){
+      task.type = 'monthly_range';
+      task.monthParts = [
+        {label:'第1篇', before:parseInt(document.getElementById('addBefore')?.value)||15},
+        {label:'第2篇', after:parseInt(document.getElementById('addAfter')?.value)||25}
+      ];
+      task.partCompletions = {};
+      task.typeLabel = '月度 · 范围';
+      task.desc = `第1篇${task.monthParts[0].before}号前，第2篇${task.monthParts[1].after}号后`;
+    }
+    
+    this.tasks.push(task);
+    this.save();
+    this.render();
+    document.getElementById('addName').value = '';
+    document.getElementById('addNote').value = '';
+    this.toast('✅ 任务已添加');
+    this.switchPage('pageDashboard');
+  }
+
+  deleteTask(taskId){
+    this.showConfirm('删除任务','确定要删除这个任务吗？此操作不可恢复。',()=>{
+      this.tasks = this.tasks.filter(t=>t.id!==taskId);
+      this.save();
+      this.closeDetail();
+      this.render();
+      this.toast('🗑️ 任务已删除');
+    });
+  }
+
+  // ===== EXPORT / IMPORT =====
+  exportData(){
+    const data = JSON.stringify({tasks:this.tasks, exportedAt:new Date().toISOString()}, null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `运营RUSH_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.toast('📤 数据已导出');
+  }
+
+  importData(event){
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try{
+        const data = JSON.parse(e.target.result);
+        if(data.tasks && Array.isArray(data.tasks)){
+          this.showConfirm('导入数据','导入将覆盖当前所有数据，确定继续？',()=>{
+            this.tasks = data.tasks;
+            this.save();
+            this.render();
+            this.toast('📥 数据已导入');
+          });
+        } else {
+          this.toast('⚠️ 无效的数据文件');
+        }
+      }catch(err){
+        this.toast('⚠️ 文件解析失败');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  confirmReset(){
+    this.showConfirm('重置所有数据','将清除所有任务数据和记录，不可恢复！',()=>{
+      localStorage.removeItem('opsrush_data');
+      this.tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+      this.save();
+      this.render();
+      this.toast('🗑️ 数据已重置');
+    });
+  }
+
+  // ===== UI HELPERS =====
+  toast(msg){
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(()=>el.classList.remove('show'),2200);
+  }
+
+  showConfirm(title, msg, onOk){
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMsg').textContent = msg;
+    document.getElementById('confirmDialog').classList.add('show');
+    document.getElementById('confirmOk').onclick = ()=>{
+      this.closeConfirm();
+      onOk();
+    };
+  }
+
+  closeConfirm(){
+    document.getElementById('confirmDialog').classList.remove('show');
+  }
+}
+
+// Init
+const app = new App();
+</script>
+</body>
+</html>
