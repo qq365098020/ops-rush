@@ -702,9 +702,8 @@ class App {
   calPickerSelect(y,m,d){this._calSelected=new Date(y,m,d);this._calSelected.setHours(0,0,0,0);this.renderCalPicker()}
   calPickerConfirm(){if(!this._calSelected||!this._calTaskId)return;this.completeTask(this._calTaskId,this._calSelected);this.closeCalOverlay()}
   closeCalOverlay(){document.getElementById('calOverlay').classList.remove('show')}
-  }
 
-  // ===== CALENDAR PICKER =====
+  // ===== CALENDAR PICKER (from detail modal) =====
   openCalendarForComplete(taskId){
     const today=TODAY();
     this._calYear=today.getFullYear();this._calMonth=today.getMonth();
