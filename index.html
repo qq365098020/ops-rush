@@ -780,14 +780,15 @@ class App {
 
     // Action buttons
     html+=`<div class="modal-section">`;
-    const isDone=s.status==='done';
-    if(isDone){
+    const hasCompletion=task.lastCompleted||(task.completions&&Object.keys(task.completions).length>0)||(task.partCompletions&&Object.keys(task.partCompletions).length>0);
+    if(hasCompletion){
       html+=`<button class="modal-btn btn-undo" onclick="app.undoComplete('${task.id}')">↩️ 撤销完成</button>`;
-    }else if(task.type==='monthly_multi'){
+    }
+    if(task.type==='monthly_multi'){
       html+=`<button class="modal-btn btn-complete" onclick="app.openCalendarForComplete('${task.id}')">✅ 完成一个节点</button>`;
     }else if(task.type==='monthly_range'){
       html+=`<button class="modal-btn btn-complete" onclick="app.openCalendarForComplete('${task.id}')">✅ 完成一篇</button>`;
-    }else{
+    }else if(!hasCompletion){
       html+=`<button class="modal-btn btn-complete" onclick="app.openCalendarForComplete('${task.id}')">✅ 标记完成</button>`;
     }
     html+=`<button class="modal-btn ${task.frozen?'btn-freeze frozen':'btn-freeze'}" onclick="app.toggleFreeze('${task.id}')">${task.frozen?'🔥 解冻任务':'❄️ 冻结任务'}</button>`;
