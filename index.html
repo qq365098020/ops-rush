@@ -600,7 +600,8 @@ class App {
     const overdue=[],upcoming=[],done=[];
     active.forEach(task=>{const s=this.getTaskStatus(task);task._status=s;
       if(s.status==='overdue')overdue.push(task);
-      else if(s.status==='today'||s.status==='soon'||(s.daysLeft!==null&&s.daysLeft<=3))upcoming.push(task);
+      else if(s.status==='today')overdue.push(task); // 今天到期也算待处理
+      else if(s.status==='soon'||(s.daysLeft!==null&&s.daysLeft<=3))upcoming.push(task);
       else if(s.status==='done')done.push(task);
       else if(s.status==='ok')upcoming.push(task);
       else if(s.status==='pending')overdue.push(task);
