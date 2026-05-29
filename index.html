@@ -504,7 +504,7 @@ class App {
   getMonthlyRangeStatus(task,today){
     const m=today.getMonth(),y=today.getFullYear();const parts=task.monthParts||[{label:'第1篇',before:15},{label:'第2篇',after:25}];
     if(!task.partCompletions)task.partCompletions={};const mk=`${y}-${m}`;let pp=[];
-    parts.forEach((part,i)=>{const key=`${mk}-${i}`;if(!task.partCompletions[key]){const target=part.before?new Date(y,m,part.before):new Date(y,m,part.after);pp.push({label:part.label,target,daysLeft:daysBetween(today,target),overdue:part.before?daysBetween(today,target)<0:false})}});
+    parts.forEach((part,i)=>{const key=`${mk}-${i}`;if(!task.partCompletions[key]){const target=part.before?new Date(y,m,part.before):new Date(y,m,part.after);pp.push({label:part.label,target,daysLeft:daysBetween(today,target),overdue:daysBetween(today,target)<0})}});
     if(!pp.length)return{status:'done',label:'本月已完成',dueDate:null,daysLeft:null,overdue:false};
     pp.sort((a,b)=>a.daysLeft-b.daysLeft);const u=pp[0];
     if(u.overdue)return{status:'overdue',label:`${u.label}逾期${-u.daysLeft}天`,dueDate:u.target,daysLeft:u.daysLeft,overdue:true};
