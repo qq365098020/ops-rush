@@ -13,8 +13,8 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
   --bg:#0a0e1a;--bg2:rgba(255,255,255,.04);
-  --glass:rgba(255,255,255,.08);--glass2:rgba(255,255,255,.12);
-  --glass-border:rgba(255,255,255,.12);
+  --glass:rgba(255,255,255,.1);--glass2:rgba(255,255,255,.15);
+  --glass-border:rgba(255,255,255,.15);
   --text:#e8eaf0;--text2:rgba(255,255,255,.6);--text3:rgba(255,255,255,.35);
   --red:#ff453a;--red-bg:rgba(255,69,58,.15);--red-glow:rgba(255,69,58,.3);
   --yellow:#ffd60a;--yellow-bg:rgba(255,214,10,.12);--yellow-glow:rgba(255,214,10,.25);
@@ -27,8 +27,10 @@
 html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;background:var(--bg);color:var(--text);font-size:15px;-webkit-font-smoothing:antialiased}
 body{display:flex;flex-direction:column}
 
-/* BG gradient */
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 0%,rgba(59,130,246,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(139,92,246,.08) 0%,transparent 50%);pointer-events:none;z-index:0}
+/* BG gradient + colorful blobs for glass effect */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 0%,rgba(59,130,246,.18) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(139,92,246,.14) 0%,transparent 50%),radial-gradient(ellipse at 60% 40%,rgba(236,72,153,.08) 0%,transparent 40%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;top:-30%;right:-20%;width:500px;height:500px;background:radial-gradient(circle,rgba(99,102,241,.12) 0%,transparent 70%);pointer-events:none;z-index:0;animation:blobFloat 12s ease-in-out infinite alternate}
+@keyframes blobFloat{0%{transform:translate(0,0)}100%{transform:translate(-40px,60px)}}
 
 /* App shell */
 #app{flex:1;display:flex;flex-direction:column;position:relative;z-index:1;overflow:hidden}
@@ -53,31 +55,57 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .section-body{transition:max-height .4s ease,opacity .3s;overflow:hidden}
 .section-header.collapsed+.section-body{max-height:0!important;opacity:0}
 
-/* Task cards */
-.task-card{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .3s;position:relative;overflow:hidden}
+/* ===== Tab Bar (替代原来的 stats-grid) ===== */
+.tab-bar{display:flex;gap:8px;margin-bottom:16px;padding:4px;background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--glass-border);border-radius:14px}
+.tab-item{flex:1;text-align:center;padding:10px 6px;border-radius:10px;cursor:pointer;transition:all .3s cubic-bezier(.32,.72,0,1);position:relative}
+.tab-item .tab-num{font-size:22px;font-weight:700;display:block;line-height:1.1}
+.tab-item .tab-label{font-size:11px;color:var(--text3);margin-top:3px;display:block;transition:color .3s}
+.tab-item.active .tab-label{color:var(--text)}
+.tab-item[data-tab="overdue"].active{background:rgba(255,69,58,.18);box-shadow:0 0 20px rgba(255,69,58,.1)}
+.tab-item[data-tab="overdue"] .tab-num{color:var(--red)}
+.tab-item[data-tab="upcoming"].active{background:rgba(255,214,10,.14);box-shadow:0 0 20px rgba(255,214,10,.08)}
+.tab-item[data-tab="upcoming"] .tab-num{color:var(--yellow)}
+.tab-item[data-tab="done"].active{background:rgba(48,209,88,.14);box-shadow:0 0 20px rgba(48,209,88,.08)}
+.tab-item[data-tab="done"] .tab-num{color:var(--green)}
+
+/* Tab content area with animation */
+.tab-content{position:relative;min-height:120px}
+.tab-panel{display:none;animation:tabFadeIn .35s ease both}
+.tab-panel.active{display:block}
+@keyframes tabFadeIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Task cards — 不满宽，右侧留完成按钮 */
+.task-card{background:var(--glass);backdrop-filter:blur(30px) saturate(1.4);-webkit-backdrop-filter:blur(30px) saturate(1.4);border:1px solid var(--glass-border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .3s;position:relative;overflow:hidden;display:flex;align-items:center;gap:10px}
 .task-card:active{transform:scale(.97)}
-.task-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
-.task-card.severity-red::before{background:linear-gradient(90deg,var(--red),#ff6b6b)}
-.task-card.severity-yellow::before{background:linear-gradient(90deg,var(--yellow),#ffe066)}
-.task-card.severity-green::before{background:linear-gradient(90deg,var(--green),#5ce882)}
+.task-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;border-radius:var(--radius) 0 0 var(--radius)}
+.task-card.severity-red::before{background:linear-gradient(180deg,var(--red),#ff6b6b)}
+.task-card.severity-yellow::before{background:linear-gradient(180deg,var(--yellow),#ffe066)}
+.task-card.severity-green::before{background:linear-gradient(180deg,var(--green),#5ce882)}
 .task-card.overdue{border-color:rgba(255,69,58,.3);box-shadow:0 0 20px rgba(255,69,58,.08)}
 .task-card.overdue.severity-red{animation:pulse-red 2s ease-in-out infinite}
 @keyframes pulse-red{0%,100%{box-shadow:0 0 20px rgba(255,69,58,.08)}50%{box-shadow:0 0 30px rgba(255,69,58,.18)}}
-.task-card .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.task-card .card-name{font-size:15px;font-weight:600;flex:1;line-height:1.3}
-.task-card .card-tag{font-size:10px;padding:3px 8px;border-radius:8px;font-weight:600;white-space:nowrap;margin-left:8px}
+
+.card-body{flex:1;min-width:0}
+.task-card .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.task-card .card-name{font-size:14px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-card .card-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;margin-left:6px;flex-shrink:0}
 .severity-red .card-tag{background:var(--red-bg);color:var(--red)}
 .severity-yellow .card-tag{background:var(--yellow-bg);color:var(--yellow)}
 .severity-green .card-tag{background:var(--green-bg);color:var(--green)}
 .task-card .card-meta{display:flex;justify-content:space-between;align-items:center}
-.task-card .card-due{font-size:12px;color:var(--text2)}
-.task-card .card-countdown{font-size:12px;font-weight:600}
+.task-card .card-due{font-size:11px;color:var(--text3)}
+.task-card .card-countdown{font-size:11px;font-weight:600}
 .task-card .card-countdown.overdue-text{color:var(--red)}
 .task-card .card-countdown.soon-text{color:var(--yellow)}
 .task-card .card-countdown.ok-text{color:var(--text3)}
 .task-card.frozen{opacity:.45;border-style:dashed}
 .task-card.frozen .card-tag{background:rgba(255,255,255,.06);color:var(--text3)}
 .task-card .frozen-badge{font-size:10px;color:var(--text3);background:rgba(255,255,255,.06);padding:2px 6px;border-radius:6px}
+
+/* Quick complete button */
+.card-done-btn{width:38px;height:38px;border-radius:50%;border:2px solid rgba(48,209,88,.4);background:rgba(48,209,88,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;cursor:pointer;font-size:16px}
+.card-done-btn:active{transform:scale(.85);background:rgba(48,209,88,.3);border-color:var(--green)}
+.task-card.frozen .card-done-btn,.done-card .card-done-btn{opacity:.25;pointer-events:none}
 
 /* Done section */
 .done-card{opacity:.55}
@@ -86,20 +114,21 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .done-toggle .chevron{transition:transform .3s;font-size:10px}
 .done-toggle.open .chevron{transform:rotate(90deg)}
 
-/* Detail Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+/* Detail Modal — 居中缩放，不用底部弹出 */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .modal-overlay.show{opacity:1;pointer-events:auto}
-.modal{background:rgba(18,22,36,.95);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--glass-border);border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding:20px 20px calc(var(--safe-bottom) + 20px);transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1)}
-.modal-overlay.show .modal{transform:translateY(0)}
-.modal-handle{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:0 auto 16px}
-.modal-title{font-size:20px;font-weight:700;margin-bottom:4px}
+.modal{background:rgba(18,22,36,.92);backdrop-filter:blur(40px) saturate(1.5);-webkit-backdrop-filter:blur(40px) saturate(1.5);border:1px solid var(--glass-border);border-radius:20px;width:calc(100% - 40px);max-width:420px;max-height:80vh;overflow-y:auto;padding:24px 20px calc(var(--safe-bottom) + 20px);transform:scale(.85);opacity:0;transition:transform .3s cubic-bezier(.32,.72,0,1),opacity .25s}
+.modal-overlay.show .modal{transform:scale(1);opacity:1}
+.modal-close-icon{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text3);transition:background .2s}
+.modal-close-icon:active{background:rgba(255,255,255,.15)}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:4px;padding-right:36px}
 .modal-type{font-size:12px;color:var(--text3);margin-bottom:16px}
 .modal-section{margin-bottom:16px}
 .modal-section-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.modal-info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass);border-radius:var(--radius-sm);margin-bottom:6px}
+.modal-info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:var(--radius-sm);margin-bottom:6px}
 .modal-info-row .label{font-size:13px;color:var(--text2)}
 .modal-info-row .value{font-size:14px;font-weight:600}
-.modal-note{background:var(--glass);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap}
+.modal-note{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap}
 .modal-btn{width:100%;padding:14px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;border:none;cursor:pointer;margin-bottom:8px;transition:transform .15s,opacity .15s}
 .modal-btn:active{transform:scale(.97);opacity:.8}
 .btn-complete{background:linear-gradient(135deg,#30d158,#28a745);color:#fff}
@@ -113,7 +142,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .input-modal .modal{padding-bottom:calc(var(--safe-bottom) + 20px)}
 .form-group{margin-bottom:14px}
 .form-label{font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.5px;margin-bottom:6px;display:block}
-.form-input,.form-select,.form-textarea{width:100%;background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-size:15px;outline:none;transition:border-color .2s;font-family:inherit}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-size:15px;outline:none;transition:border-color .2s;font-family:inherit}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue)}
 .form-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='rgba(255,255,255,0.5)' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 .form-select option{background:#1a1e2e;color:var(--text)}
@@ -122,28 +151,28 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .form-row .form-group{flex:1}
 
 /* Settings */
-.setting-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--glass);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:background .2s}
+.setting-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:background .2s}
 .setting-item:active{background:var(--glass2)}
 .setting-item .setting-label{font-size:14px;font-weight:500}
 .setting-item .setting-desc{font-size:11px;color:var(--text3);margin-top:2px}
 .setting-item .setting-arrow{color:var(--text3);font-size:14px}
 .setting-group-title{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:1px;margin:20px 0 8px;text-transform:uppercase}
 
-/* Stats */
+/* Stats (settings page) */
 .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
-.stat-card{background:var(--glass);border-radius:var(--radius-sm);padding:14px;text-align:center}
+.stat-card{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:var(--radius-sm);padding:14px;text-align:center}
 .stat-num{font-size:24px;font-weight:700}
 .stat-label{font-size:11px;color:var(--text3);margin-top:4px}
 
 /* Bottom nav */
-.bottom-nav{display:flex;justify-content:space-around;align-items:center;padding:8px 0 calc(var(--safe-bottom) + 8px);background:rgba(10,14,26,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);position:relative;z-index:10}
+.bottom-nav{display:flex;justify-content:space-around;align-items:center;padding:8px 0 calc(var(--safe-bottom) + 8px);background:rgba(10,14,26,.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,.08);position:relative;z-index:10}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 16px;cursor:pointer;transition:opacity .2s;opacity:.45}
 .nav-item.active{opacity:1}
 .nav-item .nav-icon{font-size:20px}
 .nav-item .nav-label{font-size:10px;font-weight:600;letter-spacing:.3px}
 
 /* Toast */
-.toast{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(40,44,60,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 20px;font-size:14px;font-weight:500;z-index:200;transition:transform .35s cubic-bezier(.32,.72,0,1);white-space:nowrap}
+.toast{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(40,44,60,.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 20px;font-size:14px;font-weight:500;z-index:200;transition:transform .35s cubic-bezier(.32,.72,0,1);white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
 /* Empty state */
@@ -152,7 +181,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .empty .empty-text{font-size:14px}
 
 /* Review history */
-.review-item{padding:10px 14px;background:var(--glass);border-radius:var(--radius-sm);margin-bottom:6px}
+.review-item{padding:10px 14px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:var(--radius-sm);margin-bottom:6px}
 .review-item .review-date{font-size:11px;color:var(--text3)}
 .review-item .review-note{font-size:13px;margin-top:4px}
 
@@ -170,7 +199,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 /* Confirm dialog */
 .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .confirm-overlay.show{opacity:1;pointer-events:auto}
-.confirm-box{background:rgba(30,34,52,.97);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;width:280px;text-align:center;transform:scale(.9);transition:transform .25s}
+.confirm-box{background:rgba(30,34,52,.95);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;width:280px;text-align:center;transform:scale(.9);transition:transform .25s}
 .confirm-overlay.show .confirm-box{transform:scale(1)}
 .confirm-title{font-size:16px;font-weight:600;margin-bottom:8px}
 .confirm-msg{font-size:13px;color:var(--text2);margin-bottom:20px}
@@ -189,8 +218,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <!-- Dashboard Page -->
   <div class="page active" id="pageDashboard">
-    <div class="stats-grid" id="statsGrid"></div>
-    <div id="dashboardContent"></div>
+    <div class="tab-bar" id="tabBar"></div>
+    <div class="tab-content" id="tabContent"></div>
   </div>
 
   <!-- Tasks Page -->
@@ -251,7 +280,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
     <div class="setting-group-title">关于</div>
     <div class="setting-item">
-      <div><div class="setting-label">运营RUSH v1.0</div><div class="setting-desc">专为银行运营主管打造</div></div>
+      <div><div class="setting-label">运营RUSH v1.1</div><div class="setting-desc">专为银行运营主管打造</div></div>
     </div>
   </div>
 
@@ -266,8 +295,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- Task Detail Modal -->
 <div class="modal-overlay" id="detailModal">
-  <div class="modal">
-    <div class="modal-handle"></div>
+  <div class="modal" style="position:relative">
+    <div class="modal-close-icon" onclick="app.closeDetail()">✕</div>
     <div id="detailContent"></div>
   </div>
 </div>
@@ -300,7 +329,7 @@ const DEFAULT_TASKS = [
     id:'atm_cleaning', name:'ATM清机', type:'rolling',
     severity:'red', intervalDays:4, lastCompleted:null,
     frozen:false, reviews:[], note:'',
-    manualResetDates:[], // 行长查库手动重置的时间
+    manualResetDates:[],
     typeLabel:'滚动 · 每4天', desc:'至少每4天清机一次。完成"每旬查库"会自动重置本任务。行长查库清机请点下方重置按钮。',
     linkedFrom:'inventory_check'
   },
@@ -358,7 +387,7 @@ const DEFAULT_TASKS = [
   },
   {
     id:'call_9999', name:'打9999', type:'monthly_multi',
-    severity:'red', days:[25,26,27,1], // 25,26,27,次月1
+    severity:'red', days:[25,26,27,1],
     frozen:false, reviews:[], note:'', completions:{},
     typeLabel:'月度 · 4次/月', desc:'每月25、26、27号及次月1号各打一次，共4次。每次独立标记。'
   },
@@ -393,7 +422,7 @@ const DEFAULT_TASKS = [
   },
   {
     id:'computer_log', name:'计算机操作日志', type:'weekly',
-    severity:'yellow', weekday:5, // 0=Sun,5=Fri
+    severity:'yellow', weekday:5,
     frozen:false, reviews:[], note:'',
     lastCompleted:null,
     typeLabel:'每周 · 周五', desc:'每周五提醒，当天未完成则标黄预警。'
@@ -409,23 +438,19 @@ const addDays = (d,n) => { const r=new Date(d); r.setDate(r.getDate()+n); return
 const isSaturday = d => d.getDay()===6;
 const isSunday = d => d.getDay()===0;
 
-// 遇周六顺延到下周一
 function postponeIfSaturday(d){
   const r = new Date(d);
   while(isSaturday(r)) r.setDate(r.getDate()+1);
-  // 如果顺延到周日，再顺延到周一
   while(isSunday(r)) r.setDate(r.getDate()+1);
   return r;
 }
 
-// 获取本月第1个工作日
 function firstWorkdayOfMonth(year,month){
   let d = new Date(year,month,1);
   while(isSaturday(d)||isSunday(d)) d.setDate(d.getDate()+1);
   return d;
 }
 
-// 获取本月或下月第1个工作日（从指定日期开始找）
 function nextFirstWorkday(fromDate){
   let d = new Date(fromDate.getFullYear(),fromDate.getMonth(),1);
   if(d < fromDate) d = new Date(fromDate.getFullYear(),fromDate.getMonth()+1,1);
@@ -438,6 +463,7 @@ class App {
   constructor(){
     this.tasks = [];
     this.currentPage = 'pageDashboard';
+    this.activeTab = 'overdue'; // 默认显示待处理
     this.doneOpen = {};
     this.load();
     this.setupNav();
@@ -453,7 +479,6 @@ class App {
       if(raw){
         const data = JSON.parse(raw);
         this.tasks = data.tasks || [];
-        // Merge new default tasks if any
         const existingIds = new Set(this.tasks.map(t=>t.id));
         DEFAULT_TASKS.forEach(dt=>{
           if(!existingIds.has(dt.id)) this.tasks.push(JSON.parse(JSON.stringify(dt)));
@@ -484,7 +509,6 @@ class App {
         this.switchPage(page);
       });
     });
-    // Close modal on overlay click
     document.getElementById('detailModal').addEventListener('click',e=>{
       if(e.target.classList.contains('modal-overlay')) this.closeDetail();
     });
@@ -543,23 +567,18 @@ class App {
     }
     
     if(task.type==='monthly_fixed'||task.type==='monthly_multi'){
-      // For monthly_multi (打9999), check each sub-date
       if(task.type==='monthly_multi'){
         return this.getMultiStatus(task, today);
       }
-      // Find target date this month
       let target = new Date(today.getFullYear(), today.getMonth(), task.day);
       if(target < today){
         target = new Date(today.getFullYear(), today.getMonth()+1, task.day);
       }
       if(task.postponeSat) target = postponeIfSaturday(target);
-      // Check if completed this month
       if(task.lastCompleted){
         const lc = new Date(task.lastCompleted);
         lc.setHours(0,0,0,0);
-        // If completed in same month as target, and after target-1 month
         if(lc >= new Date(target.getFullYear(), target.getMonth(), 1)){
-          // Already completed for this period
           const nextTarget = new Date(target.getFullYear(), target.getMonth()+1, task.day);
           if(task.postponeSat) postponeIfSaturday(nextTarget);
           const daysLeft = daysBetween(today, nextTarget);
@@ -576,7 +595,7 @@ class App {
     }
     
     if(task.type==='旬'){
-      return this.get旬Status(task, today);
+      return this.getXunStatus(task, today);
     }
     
     if(task.type==='monthly_range'){
@@ -593,7 +612,6 @@ class App {
       if(diff===0 && task.lastCompleted){
         const lc = new Date(task.lastCompleted); lc.setHours(0,0,0,0);
         if(daysBetween(lc,today)===0) {
-          // completed today, next is next week
           target = addDays(today, 7);
           return {status:'done', label:`已完成 · 下次${fmtDateShort(target)}`, dueDate:target, daysLeft:7, overdue:false};
         }
@@ -602,7 +620,6 @@ class App {
       if(task.lastCompleted){
         const lc = new Date(task.lastCompleted); lc.setHours(0,0,0,0);
         if(lc >= addDays(today, -today.getDay() + task.weekday) && lc <= today && diff===0){
-          // completed this week's friday
         }
       }
       const daysLeft = diff;
@@ -620,14 +637,13 @@ class App {
     return {status:'unknown', label:'--', dueDate:null, daysLeft:null, overdue:false};
   }
 
-  get旬Status(task, today){
+  getXunStatus(task, today){
     const d = today.getDate();
     let xunStart, xunEnd;
     if(d<=10){xunStart=1;xunEnd=10}
     else if(d<=20){xunStart=11;xunEnd=20}
     else{xunStart=21;xunEnd=new Date(today.getFullYear(),today.getMonth()+1,0).getDate()}
     
-    // Check if completed this旬
     if(task.lastCompleted){
       const lc = new Date(task.lastCompleted); lc.setHours(0,0,0,0);
       const lcD = lc.getDate();
@@ -644,26 +660,20 @@ class App {
         }
       }
     }
-    // Not completed this旬
-    // 旬结束日遇周六顺延
     let xunEndTarget = new Date(today.getFullYear(), today.getMonth(), xunEnd);
     if(isSaturday(xunEndTarget)) xunEndTarget = postponeIfSaturday(xunEndTarget);
-    // 如果顺延到下个月，实际截止日就是旬末
     const daysLeft = daysBetween(today, xunEndTarget);
     return {status:'overdue', label:`本旬待完成`, dueDate:xunEndTarget, daysLeft, overdue:false, isXun:true};
   }
 
   getMultiStatus(task, today){
-    // 打9999: 25,26,27,1 四个独立节点
     const month = today.getMonth();
     const year = today.getFullYear();
     let pending = [];
-    let allDone = true;
     
     task.days.forEach(day=>{
       let target;
       if(day===1){
-        // 次月1号
         target = new Date(year, month+1, 1);
       } else {
         target = new Date(year, month, day);
@@ -674,7 +684,6 @@ class App {
       const key = `${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;
       const done = task.completions && task.completions[key];
       if(!done) {
-        allDone = false;
         const dl = daysBetween(today, target);
         pending.push({target, daysLeft:dl, overdue:dl<0});
       }
@@ -682,7 +691,6 @@ class App {
     
     if(pending.length===0) return {status:'done', label:'本月全部完成', dueDate:null, daysLeft:null, overdue:false};
     
-    // Find the most urgent
     pending.sort((a,b)=>a.daysLeft-b.daysLeft);
     const urgent = pending[0];
     if(urgent.overdue) return {status:'overdue', label:`逾期${-urgent.daysLeft}天 · 还有${pending.length}次`, dueDate:urgent.target, daysLeft:urgent.daysLeft, overdue:true};
@@ -691,12 +699,10 @@ class App {
   }
 
   getMonthlyRangeStatus(task, today){
-    // 安保本学习: 15号前1篇, 25号后1篇
     const month = today.getMonth();
     const year = today.getFullYear();
     const parts = task.monthParts || [{label:'第1篇',before:15},{label:'第2篇',after:25}];
     
-    // Check completions per month-part
     if(!task.partCompletions) task.partCompletions = {};
     const monthKey = `${year}-${month}`;
     
@@ -709,8 +715,6 @@ class App {
           target = new Date(year, month, part.before);
         } else if(part.after){
           target = new Date(year, month, part.after);
-          // 如果今天还没到after日，target就是after日
-          // 如果已经过了，target就是月末
         }
         const daysLeft = daysBetween(today, target);
         pendingParts.push({label:part.label, target, daysLeft, overdue:part.before ? daysLeft < 0 : false});
@@ -726,7 +730,6 @@ class App {
   }
 
   getFlexibleStatus(task, today){
-    // 测试报警器: 每月完成1次, 5号起提醒
     const month = today.getMonth();
     const year = today.getFullYear();
     if(task.lastCompleted){
@@ -747,14 +750,13 @@ class App {
   }
 
   // ===== COMPLETE TASK =====
-  completeTask(taskId){
+  completeTask(taskId, fromCard){
     const task = this.tasks.find(t=>t.id===taskId);
     if(!task) return;
     const today = TODAY();
     const now = new Date().toISOString();
     
     if(task.type==='monthly_multi'){
-      // Mark current period's nearest pending
       const month = today.getMonth();
       const year = today.getFullYear();
       if(!task.completions) task.completions = {};
@@ -785,7 +787,6 @@ class App {
       task.lastCompleted = now;
     }
     
-    // Link: 完成每旬查库 → 重置ATM清机
     if(task.linkTo){
       const linked = this.tasks.find(t=>t.id===task.linkTo);
       if(linked){
@@ -796,10 +797,10 @@ class App {
     
     this.save();
     this.render();
-    this.toast('✅ 任务已完成');
+    if(!fromCard) this.toast('✅ 任务已完成');
+    else this.toast('✅ 已完成');
   }
 
-  // Manual reset (ATM清机)
   manualReset(taskId){
     const task = this.tasks.find(t=>t.id===taskId);
     if(!task) return;
@@ -813,7 +814,6 @@ class App {
     this.toast('✅ 已重置计时');
   }
 
-  // Freeze/Unfreeze
   toggleFreeze(taskId){
     const task = this.tasks.find(t=>t.id===taskId);
     if(!task) return;
@@ -824,7 +824,6 @@ class App {
     this.toast(task.frozen ? '❄️ 任务已冻结' : '🔥 任务已解冻');
   }
 
-  // Add review
   addReview(taskId, note){
     const task = this.tasks.find(t=>t.id===taskId);
     if(!task || !note.trim()) return;
@@ -846,9 +845,8 @@ class App {
     const active = this.tasks.filter(t=>!t.frozen);
     const frozen = this.tasks.filter(t=>t.frozen);
     
-    // Categorize
     const overdue = [];
-    const upcoming = []; // today or within 3 days
+    const upcoming = [];
     const done = [];
     
     active.forEach(task=>{
@@ -857,12 +855,11 @@ class App {
       if(s.status==='overdue') overdue.push(task);
       else if(s.status==='today' || s.status==='soon' || (s.daysLeft!==null && s.daysLeft<=3)) upcoming.push(task);
       else if(s.status==='done') done.push(task);
-      else if(s.status==='ok') upcoming.push(task); // show upcoming in yellow section
-      else if(s.status==='waiting') {} // don't show
-      else if(s.status==='pending') overdue.push(task); // never completed = overdue
+      else if(s.status==='ok') upcoming.push(task);
+      else if(s.status==='waiting') {}
+      else if(s.status==='pending') overdue.push(task);
     });
     
-    // Sort overdue by severity
     const sevOrder = {red:0,yellow:1,green:2};
     overdue.sort((a,b)=>(sevOrder[a.severity]||3)-(sevOrder[b.severity]||3));
     upcoming.sort((a,b)=>{
@@ -871,65 +868,92 @@ class App {
       return a._status.daysLeft - b._status.daysLeft;
     });
     
-    // Stats
-    const totalActive = active.length;
-    const overdueCount = overdue.length;
-    const doneCount = done.length;
-    
-    document.getElementById('statsGrid').innerHTML = `
-      <div class="stat-card"><div class="stat-num" style="color:var(--red)">${overdueCount}</div><div class="stat-label">待处理</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--yellow)">${upcoming.length}</div><div class="stat-label">进行中</div></div>
-      <div class="stat-card"><div class="stat-num" style="color:var(--green)">${doneCount}</div><div class="stat-label">已完成</div></div>
-    `;
-    
-    let html = '';
-    
-    // Overdue section
-    html += `<div class="section">
-      <div class="section-header ${overdue.length?'':'collapsed'}" onclick="this.classList.toggle('collapsed')">
-        <span class="icon">🔴</span><span class="title">已逾期</span><span class="count">${overdue.length}</span><span class="arrow">▼</span>
-      </div>
-      <div class="section-body" style="max-height:${overdue.length*120}px">
-        ${overdue.length ? overdue.map(t=>this.renderCard(t)).join('') : '<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">没有逾期任务</div></div>'}
-      </div>
-    </div>`;
-    
-    // Upcoming section
     const upcomingActive = upcoming.filter(t=>t._status.status!=='done');
     const doneTasks = [...upcoming.filter(t=>t._status.status==='done'), ...done];
-    
-    html += `<div class="section">
-      <div class="section-header" onclick="this.classList.toggle('collapsed')">
-        <span class="icon">🟡</span><span class="title">进行中</span><span class="count">${upcomingActive.length}</span><span class="arrow">▼</span>
+
+    // Render tab bar
+    document.getElementById('tabBar').innerHTML = `
+      <div class="tab-item ${this.activeTab==='overdue'?'active':''}" data-tab="overdue" onclick="app.switchTab('overdue')">
+        <span class="tab-num">${overdue.length}</span>
+        <span class="tab-label">待处理</span>
       </div>
-      <div class="section-body" style="max-height:${upcomingActive.length*120}px">
-        ${upcomingActive.length ? upcomingActive.map(t=>this.renderCard(t)).join('') : '<div class="empty"><div class="empty-icon">✨</div><div class="empty-text">暂无进行中任务</div></div>'}
+      <div class="tab-item ${this.activeTab==='upcoming'?'active':''}" data-tab="upcoming" onclick="app.switchTab('upcoming')">
+        <span class="tab-num">${upcomingActive.length}</span>
+        <span class="tab-label">进行中</span>
       </div>
-    </div>`;
-    
-    // Done section (collapsible)
-    html += `<div class="section">
-      <div class="section-header collapsed" onclick="this.classList.toggle('collapsed')">
-        <span class="icon">✅</span><span class="title">本月已完成</span><span class="count">${doneTasks.length}</span><span class="arrow">▼</span>
+      <div class="tab-item ${this.activeTab==='done'?'active':''}" data-tab="done" onclick="app.switchTab('done')">
+        <span class="tab-num">${doneTasks.length}</span>
+        <span class="tab-label">已完成</span>
       </div>
-      <div class="section-body" style="max-height:0">
-        ${doneTasks.map(t=>this.renderCard(t,true)).join('')}
-      </div>
-    </div>`;
-    
-    // Frozen
+    `;
+
+    // Render tab content
+    let panels = '';
+
+    // Overdue panel
+    panels += `<div class="tab-panel ${this.activeTab==='overdue'?'active':''}" data-panel="overdue">`;
+    if(overdue.length){
+      panels += overdue.map(t=>this.renderCard(t)).join('');
+    } else {
+      panels += '<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">没有逾期任务</div></div>';
+    }
+    panels += `</div>`;
+
+    // Upcoming panel
+    panels += `<div class="tab-panel ${this.activeTab==='upcoming'?'active':''}" data-panel="upcoming">`;
+    if(upcomingActive.length){
+      panels += upcomingActive.map(t=>this.renderCard(t)).join('');
+    } else {
+      panels += '<div class="empty"><div class="empty-icon">✨</div><div class="empty-text">暂无进行中任务</div></div>';
+    }
+    panels += `</div>`;
+
+    // Done panel
+    panels += `<div class="tab-panel ${this.activeTab==='done'?'active':''}" data-panel="done">`;
+    if(doneTasks.length){
+      panels += doneTasks.map(t=>this.renderCard(t,true)).join('');
+    } else {
+      panels += '<div class="empty"><div class="empty-icon">📝</div><div class="empty-text">暂无已完成任务</div></div>';
+    }
+    panels += `</div>`;
+
+    // Frozen section (always below tabs)
     if(frozen.length){
-      html += `<div class="section">
+      panels += `<div style="margin-top:16px"><div class="section">
         <div class="section-header collapsed" onclick="this.classList.toggle('collapsed')">
           <span class="icon">❄️</span><span class="title">已冻结</span><span class="count">${frozen.length}</span><span class="arrow">▼</span>
         </div>
         <div class="section-body" style="max-height:0">
           ${frozen.map(t=>this.renderCard(t)).join('')}
         </div>
-      </div>`;
+      </div></div>`;
     }
-    
-    document.getElementById('dashboardContent').innerHTML = html;
+
+    document.getElementById('tabContent').innerHTML = panels;
+
+    // Store data for frozen section
+    this._frozenTasks = frozen;
+  }
+
+  switchTab(tab){
+    this.activeTab = tab;
+    // Update tab bar active state
+    document.querySelectorAll('.tab-item').forEach(el=>{
+      el.classList.toggle('active', el.dataset.tab===tab);
+    });
+    // Update panel visibility with animation
+    document.querySelectorAll('.tab-panel').forEach(el=>{
+      const isTarget = el.dataset.panel===tab;
+      if(isTarget && !el.classList.contains('active')){
+        el.classList.add('active');
+        // Re-trigger animation
+        el.style.animation = 'none';
+        el.offsetHeight; // force reflow
+        el.style.animation = '';
+      } else if(!isTarget){
+        el.classList.remove('active');
+      }
+    });
   }
 
   renderCard(task, isDone=false){
@@ -943,15 +967,18 @@ class App {
     if(s.overdue) countdownClass = 'overdue-text';
     else if(s.daysLeft!==null && s.daysLeft<=3) countdownClass = 'soon-text';
     
-    return `<div class="task-card ${sevClass} ${overdue?'overdue':''} ${frozenClass} ${doneClass}" onclick="app.openDetail('${task.id}')">
-      <div class="card-top">
-        <div class="card-name">${task.name}</div>
-        ${task.frozen ? '<span class="frozen-badge">❄️ 冻结</span>' : `<span class="card-tag">${this.sevLabel(task.severity)}</span>`}
+    return `<div class="task-card ${sevClass} ${overdue?'overdue':''} ${frozenClass} ${doneClass}">
+      <div class="card-body" onclick="app.openDetail('${task.id}')">
+        <div class="card-top">
+          <div class="card-name">${task.name}</div>
+          ${task.frozen ? '<span class="frozen-badge">❄️ 冻结</span>' : `<span class="card-tag">${this.sevLabel(task.severity)}</span>`}
+        </div>
+        <div class="card-meta">
+          <div class="card-due">${s.dueDate ? '截止 '+fmtDateShort(s.dueDate) : (s.label||'')}</div>
+          <div class="card-countdown ${countdownClass}">${s.label}</div>
+        </div>
       </div>
-      <div class="card-meta">
-        <div class="card-due">${s.dueDate ? '截止 '+fmtDateShort(s.dueDate) : (s.label||'')}</div>
-        <div class="card-countdown ${countdownClass}">${s.label}</div>
-      </div>
+      <div class="card-done-btn" onclick="event.stopPropagation();app.completeTask('${task.id}',true)">✓</div>
     </div>`;
   }
 
@@ -996,7 +1023,6 @@ class App {
     let html = `<div class="modal-title">${task.name}</div>
       <div class="modal-type">${task.typeLabel || task.type}</div>`;
     
-    // Status info
     html += `<div class="modal-section">
       <div class="modal-section-title">状态</div>
       <div class="modal-info-row">
@@ -1017,7 +1043,6 @@ class App {
       </div>` : ''}
     </div>`;
     
-    // Description
     if(task.desc){
       html += `<div class="modal-section">
         <div class="modal-section-title">说明</div>
@@ -1025,7 +1050,6 @@ class App {
       </div>`;
     }
     
-    // Persistent note
     if(task.hasPersistentNote && task.note){
       html += `<div class="modal-section">
         <div class="modal-section-title">📋 操作备注（常驻）</div>
@@ -1033,7 +1057,6 @@ class App {
       </div>`;
     }
     
-    // ATM清机 special: manual reset button
     if(task.id==='atm_cleaning'){
       html += `<div class="modal-section">
         <button class="modal-btn btn-reset" onclick="app.manualReset('${task.id}')">🔄 重置计时（行长查库清机）</button>
@@ -1041,7 +1064,6 @@ class App {
       </div>`;
     }
     
-    // 打9999 special: show each sub-date status
     if(task.type==='monthly_multi'){
       const month = new Date().getMonth();
       const year = new Date().getFullYear();
@@ -1060,7 +1082,6 @@ class App {
       html += `</div>`;
     }
     
-    // 月度范围 special
     if(task.type==='monthly_range'){
       const month = new Date().getMonth();
       const year = new Date().getFullYear();
@@ -1078,7 +1099,6 @@ class App {
       html += `</div>`;
     }
     
-    // Review input
     html += `<div class="modal-section">
       <div class="modal-section-title">添加复盘备注</div>
       <div style="display:flex;gap:8px">
@@ -1087,7 +1107,6 @@ class App {
       </div>
     </div>`;
     
-    // Review history
     if(task.reviews && task.reviews.length){
       html += `<div class="modal-section">
         <div class="modal-section-title">历史备注</div>
@@ -1095,7 +1114,6 @@ class App {
       </div>`;
     }
     
-    // Action buttons
     html += `<div class="modal-section">`;
     if(task.type==='monthly_multi'){
       html += `<button class="modal-btn btn-complete" onclick="app.completeTask('${task.id}');app.openDetail('${task.id}')">✅ 完成一个节点</button>`;
@@ -1105,13 +1123,8 @@ class App {
       html += `<button class="modal-btn btn-complete" onclick="app.completeTask('${task.id}');app.closeDetail()">✅ 标记完成</button>`;
     }
     
-    if(task.id!=='atm_cleaning'){ // ATM清机的重置已在上方
-      // no separate reset for other tasks
-    }
-    
     html += `<button class="modal-btn ${task.frozen?'btn-freeze frozen':'btn-freeze'}" onclick="app.toggleFreeze('${task.id}')">${task.frozen?'🔥 解冻任务':'❄️ 冻结任务'}</button>`;
     
-    // Delete (only for custom tasks)
     if(!DEFAULT_TASKS.find(d=>d.id===task.id)){
       html += `<button class="modal-btn btn-delete" onclick="app.deleteTask('${task.id}')">🗑️ 删除任务</button>`;
     }
