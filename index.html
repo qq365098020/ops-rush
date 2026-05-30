@@ -657,9 +657,9 @@ class App {
     active.forEach(task=>{const s=this.getTaskStatus(task);task._status=s;
       if(s.status==='overdue')overdue.push(task);
       else if(s.status==='today')overdue.push(task); // 今天到期也算待处理
-      else if(s.status==='soon'||(s.daysLeft!==null&&s.daysLeft<=3))upcoming.push(task);
       else if(s.status==='done'&&(!task.multiCompletion||this.isMonthFullyComplete(task)))done.push(task);
       else if(s.status==='done'&&task.multiCompletion&&!this.isMonthFullyComplete(task))upcoming.push(task);
+      else if(s.status==='soon'||(s.daysLeft!==null&&s.daysLeft<=3))upcoming.push(task);
       else if(s.status==='ok')upcoming.push(task);
       else if(s.status==='pending')overdue.push(task);
     });
