@@ -379,7 +379,7 @@ const DEFAULT_TASKS = [
   {id:'call_9999',name:'打9999',type:'monthly_multi',severity:'red',days:[25,26,27,1],reviews:[],note:'',completions:{},typeLabel:'月度 · 4次/月',desc:'每月25、26、27号及次月1号各打一次，共4次。每次独立标记。'},
   {id:'balance_print',name:'科目余额查询及打印 1221/2011/2014/2232/2241/2314',type:'monthly_fixed',severity:'red',day:1,postponeSat:true,reviews:[],note:'在6301科目号处依次输入以上6个科目查询余额；有余额的复制账号，在6303中粘贴账号，按整月打印，所有科目打印在同一张纸上，仅在第一页签名。',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'遇周六顺延至下一工作日。操作备注常驻显示。',hasPersistentNote:true},
   {id:'personal_security',name:'个人安保学习本',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延。'},
-  {id:'alarm_test',name:'测试报警器并登记',type:'monthly_flexible',severity:'red',remindFrom:5,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1次',desc:'每月完成一次即可。5号起开始提醒，月末未完成标红加急。'},
+{id:'alarm_test',name:'测试报警器并登记',type:'monthly_fixed',severity:'red',day:15,postponeSat:false,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月15号',desc:'每月15号完成。'},
   {id:'wall_safety',name:'墙上安全检查',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延。'},
   {id:'computer_log',name:'计算机操作日志',type:'weekly',severity:'yellow',weekday:5,reviews:[],note:'',lastCompleted:null,typeLabel:'每周 · 周五',desc:'每周五提醒，当天未完成则标黄预警。'}
 ];
@@ -633,6 +633,24 @@ class App {
   // ===== RENDER =====
   render(){this.renderDashboard();this.renderTasks()}
 
+  isMonthFullyComplete(task){
+    const today=TODAY();const m=today.getMonth(),y=today.getFullYear();
+    if(task.type==='旬'){
+      if(!task.completions)return false;
+      return!!(task.completions[`\${y}-\${m}-1`]&&task.completions[`\${y}-\${m}-2`]&&task.completions[`\${y}-\${m}-3`]);
+    }
+    if(task.type==='monthly_range'){
+      if(!task.partCompletions||!task.monthParts)return false;
+      const mk=`\${y}-\${m}`;
+      return task.monthParts.every((_,i)=>!!task.partCompletions[`\${mk}-\${i}`]);
+    }
+    if(task.type==='monthly_multi'){
+      if(!task.completions||!task.days)return false;
+      return task.days.every(day=>{let d;if(day===1)d=new Date(y,m+1,1);else d=new Date(y,m,day);const key=`\${d.getFullYear()}-\${d.getMonth()}-\${d.getDate()}`;return!!task.completions[key]});
+    }
+    return false;
+  }
+
   renderDashboard(){
     const today=TODAY();const active=this.tasks;
     const overdue=[],upcoming=[],done=[];
@@ -640,16 +658,16 @@ class App {
       if(s.status==='overdue')overdue.push(task);
       else if(s.status==='today')overdue.push(task); // 今天到期也算待处理
       else if(s.status==='soon'||(s.daysLeft!==null&&s.daysLeft<=3))upcoming.push(task);
-      else if(s.status==='done'&&!task.multiCompletion)done.push(task);
-      else if(s.status==='done'&&task.multiCompletion)upcoming.push(task);
+      else if(s.status==='done'&&(!task.multiCompletion||this.isMonthFullyComplete(task)))done.push(task);
+      else if(s.status==='done'&&task.multiCompletion&&!this.isMonthFullyComplete(task))upcoming.push(task);
       else if(s.status==='ok')upcoming.push(task);
       else if(s.status==='pending')overdue.push(task);
     });
     const sevOrder={red:0,yellow:1,green:2};
     overdue.sort((a,b)=>(sevOrder[a.severity]||3)-(sevOrder[b.severity]||3));
     upcoming.sort((a,b)=>{if(a._status.daysLeft===null)return 1;if(b._status.daysLeft===null)return -1;return a._status.daysLeft-b._status.daysLeft});
-    const upcomingActive=upcoming.filter(t=>t._status.status!=='done'||t.multiCompletion);
-    const doneTasks=[...upcoming.filter(t=>t._status.status==='done'&&!t.multiCompletion),...done];
+    const upcomingActive=upcoming.filter(t=>t._status.status!=='done'&&(t.multiCompletion?!this.isMonthFullyComplete(t):true));
+    const doneTasks=[...upcoming.filter(t=>t._status.status==='done'&&(!t.multiCompletion||this.isMonthFullyComplete(t))),...done];
 
     document.getElementById('tabBar').innerHTML=`
       <div class="tab-item ${this.activeTab==='overdue'?'active':''}" data-tab="overdue" onclick="app.switchTab('overdue')"><span class="tab-num">${overdue.length}</span><span class="tab-label">待处理</span></div>
@@ -834,6 +852,7 @@ class App {
     if(!this._calSelected||!this._calTaskId)return;
     this.completeTask(this._calTaskId,this._calSelected);
     this.closeCalOverlay();
+    this.refreshDetail(this._calTaskId);
   }
 
   // ===== TASKS PAGE =====
@@ -853,12 +872,7 @@ class App {
     const task=this.tasks.find(t=>t.id===taskId);if(!task)return;
     const s=this.getTaskStatus(task);
     let html=`<div class="modal-title">${task.name}</div><div class="modal-type">${task.typeLabel||task.type}</div>`;
-    html+=`<div class="modal-section"><div class="modal-section-title">状态</div>
-      <div class="modal-info-row"><span class="label">当前状态</span><span class="value" style="color:${s.overdue?'var(--red)':s.status==='done'?'var(--green)':'var(--text)'}">${s.label}</span></div>
-      ${s.dueDate?`<div class="modal-info-row"><span class="label">截止日期</span><span class="value">${fmtDate(s.dueDate)}</span></div>`:''}
-      ${task.lastCompleted?`<div class="modal-info-row"><span class="label">上次完成</span><span class="value">${fmtDate(new Date(task.lastCompleted))}</span></div>`:''}
-      <div class="modal-info-row"><span class="label">逾期代价</span><span class="value" style="color:var(--${task.severity})">${this.sevLabel(task.severity)}</span></div>
-    </div>`;
+    // Status section removed - mini calendar shows completion history instead
     if(task.desc)html+=`<div class="modal-section"><div class="modal-section-title">说明</div><div class="modal-note">${task.desc}</div></div>`;
     if(task.hasPersistentNote&&task.note)html+=`<div class="modal-section"><div class="modal-section-title">📋 操作备注（常驻）</div><div class="modal-note">${task.note}</div></div>`;
     if(task.id==='atm_cleaning')html+=`<div class="modal-section"><button class="modal-btn btn-reset" onclick="app.manualReset('${task.id}')">🔄 重置计时（行长查库清机）</button>${task.manualResetDates&&task.manualResetDates.length?`<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px">上次手动重置：${fmtDate(new Date(task.manualResetDates[task.manualResetDates.length-1]))}</div>`:''}</div>`;
