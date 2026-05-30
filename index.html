@@ -678,7 +678,7 @@ class App {
     let cc='ok-text';if(s.overdue)cc='overdue-text';else if(s.daysLeft!==null&&s.daysLeft<=3)cc='soon-text';
     return`<div class="task-card ${sevClass} ${overdue?'overdue':''} ${doneClass}">
       <div class="card-body" onclick="app.openDetail('${task.id}')">
-        <div class="card-top"><div class="card-name">${task.name}</div>`<span class="card-tag">${this.sevLabel(task.severity)}</span>`</div>
+        <div class="card-top"><div class="card-name">${task.name}</div><span class="card-tag">${this.sevLabel(task.severity)}</span></div>
         <div class="card-meta"><div class="card-due">${s.dueDate?'截止 '+fmtDateShort(s.dueDate):(s.label||'')}</div><div class="card-countdown ${cc}">${s.label}</div></div>
       </div>
       <div class="card-cal-btn" onclick="event.stopPropagation();app.openCalPicker('${task.id}')">📅</div>
