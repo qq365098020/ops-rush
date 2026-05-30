@@ -931,8 +931,21 @@ class App {
     if(task.lastCompleted){const d=new Date(task.lastCompleted);d.setHours(0,0,0,0);doneDates.add(d.toDateString())}
     // Completion history (all past completions)
     if(task.completionHistory){task.completionHistory.forEach(ds=>{const parts=ds.split('-');if(parts.length===3){const d=new Date(parseInt(parts[0]),parseInt(parts[1]),parseInt(parts[2]));doneDates.add(d.toDateString())}})}
-    // Monthly multi: completions dict
-    if(task.completions){Object.keys(task.completions).forEach(k=>{const d=new Date(k);if(!isNaN(d))doneDates.add(d.toDateString())})}
+    // Completions dict (monthly_multi uses date keys, xun uses year-month-xunIdx)
+    if(task.completions){
+      if(task.type==='旬'){
+        // xun keys: "2026-4-1" — parse actual date from stored value
+        Object.keys(task.completions).forEach(k=>{
+          const rec=task.completions[k];
+          if(rec&&rec.date){
+            const match=rec.date.match(/(\d+)月(\d+)日/);
+            if(match){const d=new Date(parseInt(k.split('-')[0]),parseInt(match[1])-1,parseInt(match[2]));doneDates.add(d.toDateString())}
+          }
+        });
+      } else {
+        Object.keys(task.completions).forEach(k=>{const d=new Date(k);if(!isNaN(d))doneDates.add(d.toDateString())})
+      }
+    }
     // Monthly range: partCompletions
     if(task.partCompletions){Object.keys(task.partCompletions).forEach(k=>{const [y,m]=k.split('-').map(Number);const d=new Date(y,m,15);doneDates.add(d.toDateString())})}
     // Manual reset dates
