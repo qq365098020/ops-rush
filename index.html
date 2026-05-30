@@ -603,7 +603,7 @@ class App {
       // Undo the most recent completion
       if(task.completions){const keys=Object.keys(task.completions);if(keys.length){delete task.completions[keys[keys.length-1]]}}
     }else if(task.type==='旬'){
-      if(task.completions){const keys=Object.keys(task.completions).filter(k=>k.startsWith(`${TODAY().getFullYear()}-${TODAY().getMonth()}`));if(keys.length){delete task.completions[keys[keys.length-1]]}}
+      if(task.completions){const keys=Object.keys(task.completions).filter(k=>k.startsWith(`${TODAY().getFullYear()}-${TODAY().getMonth()}`));if(keys.length){const lastKey=keys[keys.length-1];const entries=task.completions[lastKey];if(Array.isArray(entries)&&entries.length>0){entries.pop();if(!entries.length)delete task.completions[lastKey]}else{delete task.completions[lastKey]}}}
       // Also clear lastCompleted if no more completions this month
       const monthKeys=Object.keys(task.completions||{}).filter(k=>k.startsWith(`${TODAY().getFullYear()}-${TODAY().getMonth()}`));
       if(!monthKeys.length)task.lastCompleted=null;
@@ -637,7 +637,8 @@ class App {
     const today=TODAY();const m=today.getMonth(),y=today.getFullYear();
     if(task.type==='旬'){
       if(!task.completions)return false;
-      return!!(task.completions[`\${y}-\${m}-1`]&&task.completions[`\${y}-\${m}-2`]&&task.completions[`\${y}-\${m}-3`]);
+      const xunDone=k=>{const d=task.completions[k];return d&&(Array.isArray(d)?d.length>0:true)};
+      return!!(xunDone(`\${y}-\${m}-1`)&&xunDone(`\${y}-\${m}-2`)&&xunDone(`\${y}-\${m}-3`));
     }
     if(task.type==='monthly_range'){
       if(!task.partCompletions||!task.monthParts)return false;
@@ -878,7 +879,7 @@ class App {
     if(task.id==='atm_cleaning')html+=`<div class="modal-section"><button class="modal-btn btn-reset" onclick="app.manualReset('${task.id}')">🔄 重置计时（行长查库清机）</button>${task.manualResetDates&&task.manualResetDates.length?`<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px">上次手动重置：${fmtDate(new Date(task.manualResetDates[task.manualResetDates.length-1]))}</div>`:''}</div>`;
     if(task.type==='monthly_multi'){const m=new Date().getMonth(),y=new Date().getFullYear();html+=`<div class="modal-section"><div class="modal-section-title">各节点状态</div>`;task.days.forEach(day=>{let target;if(day===1)target=new Date(y,m+1,1);else target=new Date(y,m,day);const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(target)}</span><span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ 已完成':'⬜ 待完成'}</span></div>`});html+=`</div>`}
     if(task.type==='monthly_range'){const m=new Date().getMonth(),y=new Date().getFullYear(),mk=`${y}-${m}`;if(!task.partCompletions)task.partCompletions={};html+=`<div class="modal-section"><div class="modal-section-title">各篇状态</div>`;(task.monthParts||[]).forEach((part,i)=>{const key=`${mk}-${i}`;const done=task.partCompletions[key];html+=`<div class="modal-info-row"><span class="label">${part.label} ${part.before?part.before+'号前':'25号后'}</span><span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ 已完成':'⬜ 待完成'}</span></div>`});html+=`</div>`}
-    if(task.type==='旬'){const m=new Date().getMonth(),y=new Date().getFullYear();if(!task.completions)task.completions={};html+=`<div class="modal-section"><div class="modal-section-title">本月各旬状态</div>`;const xunLabels=['第1旬（1-10号）','第2旬（11-20号）','第3旬（21-月末）'];xunLabels.forEach((label,i)=>{const key=`${y}-${m}-${i+1}`;const done=task.completions[key];const displayDate=done?(done.date||`${y}年${m+1}月完成`):null;html+=`<div class="modal-info-row"><span class="label">${label}</span><span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ '+displayDate:'⬜ 待完成'}</span></div>`});html+=`</div>`}
+    if(task.type==='旬'){const m=new Date().getMonth(),y=new Date().getFullYear();if(!task.completions)task.completions={};html+=`<div class="modal-section"><div class="modal-section-title">本月各旬状态</div>`;const xunLabels=['第1旬（1-10号）','第2旬（11-20号）','第3旬（21-月末）'];xunLabels.forEach((label,i)=>{const key=`${y}-${m}-${i+1}`;raw=task.completions[key];const arr=Array.isArray(raw)?raw:raw?[raw]:[];const display=arr.length?arr.map(r=>r.date||'已完成').join(' + '):null;html+=`<div class=\"modal-info-row\"><span class=\"label\">${label}</span><span class=\"value\" style=\"color:${arr.length?'var(--green)':'var(--text3)'}\">${arr.length?'✅ '+display:'⬜ 待完成'}</span></div>`});html+=`</div>`}
 
     // Mini completion calendar (read-only)
     html+=this.renderMiniCalendar(task);
@@ -934,13 +935,14 @@ class App {
     // Completions dict (monthly_multi uses date keys, xun uses year-month-xunIdx)
     if(task.completions){
       if(task.type==='旬'){
-        // xun keys: "2026-4-1" — parse actual date from stored value
         Object.keys(task.completions).forEach(k=>{
-          const rec=task.completions[k];
-          if(rec&&rec.date){
-            const match=rec.date.match(/(\d+)月(\d+)日/);
-            if(match){const d=new Date(parseInt(k.split('-')[0]),parseInt(match[1])-1,parseInt(match[2]));doneDates.add(d.toDateString())}
-          }
+          const entries=Array.isArray(task.completions[k])?task.completions[k]:task.completions[k]?[task.completions[k]]:[];
+          entries.forEach(rec=>{
+            if(rec&&rec.date){
+              const match=rec.date.match(/(\d+)月(\d+)日/);
+              if(match){const d=new Date(parseInt(k.split('-')[0]),parseInt(match[1])-1,parseInt(match[2]));doneDates.add(d.toDateString())}
+            }
+          });
         });
       } else {
         Object.keys(task.completions).forEach(k=>{const d=new Date(k);if(!isNaN(d))doneDates.add(d.toDateString())})
