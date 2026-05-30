@@ -408,6 +408,11 @@ class App {
       const raw=localStorage.getItem('opsrush_data');
       if(raw){const data=JSON.parse(raw);this.tasks=data.tasks||[];const ids=new Set(this.tasks.map(t=>t.id));DEFAULT_TASKS.forEach(dt=>{if(!ids.has(dt.id))this.tasks.push(JSON.parse(JSON.stringify(dt)))})}
       else this.tasks=JSON.parse(JSON.stringify(DEFAULT_TASKS));
+      // Migration: ensure multiCompletion flag and completionHistory exist
+      this.tasks.forEach(t=>{
+        if(t.type==='旬'||t.type==='monthly_range'||t.type==='monthly_multi')t.multiCompletion=true;
+        if(t.type==='rolling'&&!t.completionHistory)t.completionHistory=[];
+      });
     }catch(e){this.tasks=JSON.parse(JSON.stringify(DEFAULT_TASKS))}
   }
 
