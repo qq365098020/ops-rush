@@ -909,10 +909,7 @@ class App {
     if(task.reviews&&task.reviews.length)html+=`<div class="modal-section"><div class="modal-section-title">历史备注</div>${task.reviews.slice(0,10).map(r=>`<div class="review-item"><div class="review-date">${fmtDate(new Date(r.date))}</div><div class="review-note">${r.note}</div></div>`).join('')}</div>`;
 
     // Undo button (rarely used, at the very bottom)
-    const hasCompletion=task.lastCompleted||(task.completions&&Object.keys(task.completions).length>0)||(task.partCompletions&&Object.keys(task.partCompletions).length>0);
-    if(hasCompletion){
-      html+=`<div class="modal-section"><button class="modal-btn btn-undo" style="opacity:.6;font-size:13px" onclick="app.undoComplete('${task.id}')">↩️ 撤销完成</button></div>`;
-    }
+    html+=`<div class="modal-section"><button class="modal-btn btn-undo" style="opacity:.6;font-size:13px" onclick="app.undoComplete('${task.id}')">↩️ 撤销完成</button></div>`;
 
     document.getElementById('detailContent').innerHTML=html;
     document.getElementById('detailModal').classList.add('show');
