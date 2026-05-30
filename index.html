@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
 <meta name="theme-color" content="#f0ebe3">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><defs><linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%23FF9500'/><stop offset='100%25' stop-color='%23FF6B00'/></linearGradient></defs><rect width='180' height='180' rx='40' fill='url(%23bg)'/><text x='90' y='125' font-size='110' text-anchor='middle' fill='white'>⚡</text></svg>">
 <title>运营RUSH</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -323,7 +323,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
     </div>
     <div class="setting-group-title">关于</div>
     <div class="setting-item">
-      <div><div class="setting-label">运营RUSH v1.5</div></div>
+      <div><div class="setting-label">运营RUSH v1.6</div></div>
     </div>
   </div>
 
@@ -370,8 +370,8 @@ const DEFAULT_TASKS = [
   {id:'anti_money_laundering',name:'反洗钱检查',type:'rolling',severity:'red',intervalDays:3,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每3天',desc:'从上次完成日起计算，满3天未完成则标红预警。周六关门日计入天数。'},
   {id:'atm_cleaning',name:'ATM清机',type:'rolling',severity:'red',intervalDays:4,lastCompleted:null,reviews:[],note:'',manualResetDates:[],typeLabel:'滚动 · 每4天',desc:'至少每4天清机一次。完成"每旬查库"会自动重置本任务。行长查库清机请点下方重置按钮。',linkedFrom:'inventory_check'},
   {id:'atm_register',name:'ATM机登记本',type:'rolling',severity:'yellow',intervalDays:4,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每4天',desc:'至少每4天登记一次。周六关门日计入天数。'},
-  {id:'inventory_check',name:'每旬查库',type:'旬',severity:'red',lastCompleted:null,reviews:[],note:'',completions:{},typeLabel:'月度 · 每旬',desc:'每月3次：1-10号、11-20号、21-31号各完成一次。每旬开始即持续提醒。周六关门日截止日顺延。完成本任务会自动重置"ATM清机"计时。',linkTo:'atm_cleaning'},
-  {id:'security_study',name:'安保本学习记录',type:'monthly_range',severity:'yellow',lastCompleted:null,reviews:[],note:'',monthParts:[{label:'第1篇',before:15},{label:'第2篇',after:25}],typeLabel:'月度 · 2篇/月',desc:'第1篇：15号之前完成。第2篇：25号之后完成（抄中心社内容）。'},
+  {id:'inventory_check',name:'每旬查库',type:'旬',severity:'red',multiCompletion:true,lastCompleted:null,reviews:[],note:'',completions:{},typeLabel:'月度 · 每旬',desc:'每月3次：1-10号、11-20号、21-31号各完成一次。每旬开始即持续提醒。周六关门日截止日顺延。完成本任务会自动重置"ATM清机"计时。',linkTo:'atm_cleaning'},
+  {id:'security_study',name:'安保本学习记录',type:'monthly_range',severity:'yellow',multiCompletion:true,lastCompleted:null,reviews:[],note:'',monthParts:[{label:'第1篇',before:15},{label:'第2篇',after:25}],typeLabel:'月度 · 2篇/月',desc:'第1篇：15号之前完成。第2篇：25号之后完成（抄中心社内容）。'},
   {id:'counterfeit_surrender',name:'反假币上缴登记',type:'monthly_fixed',severity:'green',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延至下一工作日。'},
   {id:'monthly_stats',name:'每月统计业务量',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延至下一工作日。'},
   {id:'ticket_binding',name:'装订票',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'若当月某周六为网点轮休关门日，需在该日期对应的票据后附加一张说明纸，格式为：网点轮休：北环路分理处 YYYY.MM.DD 周末轮休无票（日期填写实际关门日期）',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'装订上月全部票据。遇周六顺延。操作备注常驻显示。',hasPersistentNote:true},
@@ -582,6 +582,9 @@ class App {
       for(let i=0;i<parts.length;i++){const key=`${mk}-${i}`;if(!task.partCompletions[key]){task.partCompletions[key]=now;break}}
     }else{
       task.lastCompleted=targetDate.toISOString();
+      if(!task.completionHistory)task.completionHistory=[];
+      const dateStr=`${targetDate.getFullYear()}-${targetDate.getMonth()}-${targetDate.getDate()}`;
+      if(!task.completionHistory.includes(dateStr))task.completionHistory.push(dateStr);
     }
     if(task.linkTo){const linked=this.tasks.find(t=>t.id===task.linkTo);if(linked){linked.lastCompleted=targetDate.toISOString();this.toast('✅ 已联动重置 ATM清机 计时')}}
     this.save();this.render();
@@ -632,7 +635,8 @@ class App {
       if(s.status==='overdue')overdue.push(task);
       else if(s.status==='today')overdue.push(task); // 今天到期也算待处理
       else if(s.status==='soon'||(s.daysLeft!==null&&s.daysLeft<=3))upcoming.push(task);
-      else if(s.status==='done')done.push(task);
+      else if(s.status==='done'&&!task.multiCompletion)done.push(task);
+      else if(s.status==='done'&&task.multiCompletion)upcoming.push(task);
       else if(s.status==='ok')upcoming.push(task);
       else if(s.status==='pending')overdue.push(task);
     });
@@ -693,7 +697,7 @@ class App {
     const task=this.tasks.find(t=>t.id===taskId);if(!task)return;
     const s=this.getTaskStatus(task);
     if(s.status==='done'){this.openDetail(taskId);return}
-    this.completeTask(taskId, TODAY());
+    this.completeTask(taskId, TODAY());if(document.getElementById('detailModal').classList.contains('show'))this.refreshDetail(taskId);
   }
 
   openCalPicker(taskId){
@@ -731,7 +735,7 @@ class App {
 
   calPickerNav(dir){this._calMonth+=dir;if(this._calMonth>11){this._calMonth=0;this._calYear++}if(this._calMonth<0){this._calMonth=11;this._calYear--}this.renderCalPicker()}
   calPickerSelect(y,m,d){this._calSelected=new Date(y,m,d);this._calSelected.setHours(0,0,0,0);this.renderCalPicker()}
-  calPickerConfirm(){if(!this._calSelected||!this._calTaskId)return;this.completeTask(this._calTaskId,this._calSelected);this.closeCalOverlay()}
+  calPickerConfirm(){if(!this._calSelected||!this._calTaskId)return;this.completeTask(this._calTaskId,this._calSelected);this.closeCalOverlay();this.refreshDetail(this._calTaskId)}
   closeCalOverlay(){document.getElementById('calOverlay').classList.remove('show')}
 
   // ===== CALENDAR PICKER (from detail modal) =====
@@ -860,12 +864,8 @@ class App {
     // Mini completion calendar (read-only)
     html+=this.renderMiniCalendar(task);
 
-    // Action buttons - always show complete button
+    // Action buttons
     html+=`<div class="modal-section">`;
-    const hasCompletion=task.lastCompleted||(task.completions&&Object.keys(task.completions).length>0)||(task.partCompletions&&Object.keys(task.partCompletions).length>0);
-    if(hasCompletion){
-      html+=`<button class="modal-btn btn-undo" onclick="app.undoComplete('${task.id}')">↩️ 撤销完成</button>`;
-    }
     if(task.type==='monthly_multi'){
       html+=`<button class="modal-btn btn-complete" onclick="app.openCalendarForComplete('${task.id}')">✅ 完成一个节点</button>`;
     }else if(task.type==='monthly_range'){
@@ -882,17 +882,36 @@ class App {
     html+=`<div class="modal-section"><div class="modal-section-title">📝 复盘备注</div><div style="display:flex;gap:8px"><input class="form-input" id="reviewInput" placeholder="一句话备注..." style="flex:1"><button class="modal-btn btn-complete" style="width:auto;padding:12px 20px;margin:0" onclick="app.addReview('${task.id}',document.getElementById('reviewInput').value)">保存</button></div></div>`;
     if(task.reviews&&task.reviews.length)html+=`<div class="modal-section"><div class="modal-section-title">历史备注</div>${task.reviews.slice(0,10).map(r=>`<div class="review-item"><div class="review-date">${fmtDate(new Date(r.date))}</div><div class="review-note">${r.note}</div></div>`).join('')}</div>`;
 
+    // Undo button (rarely used, at the very bottom)
+    const hasCompletion=task.lastCompleted||(task.completions&&Object.keys(task.completions).length>0)||(task.partCompletions&&Object.keys(task.partCompletions).length>0);
+    if(hasCompletion){
+      html+=`<div class="modal-section"><button class="modal-btn btn-undo" style="opacity:.6;font-size:13px" onclick="app.undoComplete('${task.id}')">↩️ 撤销完成</button></div>`;
+    }
+
     document.getElementById('detailContent').innerHTML=html;
     document.getElementById('detailModal').classList.add('show');
   }
 
   closeDetail(){document.getElementById('detailModal').classList.remove('show')}
 
+  refreshDetail(taskId){
+    const content=document.getElementById('detailContent');
+    content.style.transition='opacity .25s ease';
+    content.style.opacity='0';
+    setTimeout(()=>{
+      this.openDetail(taskId);
+      content.style.opacity='0';
+      requestAnimationFrame(()=>{content.style.transition='opacity .35s ease';content.style.opacity='1'});
+    },260);
+  }
+
   renderMiniCalendar(task){
     // Collect all completion dates for this task
     const doneDates=new Set();
     // Rolling/simple: lastCompleted
     if(task.lastCompleted){const d=new Date(task.lastCompleted);d.setHours(0,0,0,0);doneDates.add(d.toDateString())}
+    // Completion history (all past completions)
+    if(task.completionHistory){task.completionHistory.forEach(ds=>{const parts=ds.split('-');if(parts.length===3){const d=new Date(parseInt(parts[0]),parseInt(parts[1]),parseInt(parts[2]));doneDates.add(d.toDateString())}})}
     // Monthly multi: completions dict
     if(task.completions){Object.keys(task.completions).forEach(k=>{const d=new Date(k);if(!isNaN(d))doneDates.add(d.toDateString())})}
     // Monthly range: partCompletions
@@ -931,8 +950,8 @@ class App {
     if(type==='rolling'){task.intervalDays=parseInt(document.getElementById('addInterval')?.value)||3;task.typeLabel=`滚动 · 每${task.intervalDays}天`;task.desc=`每隔${task.intervalDays}天完成一次`}
     else if(type==='monthly_fixed'){task.day=parseInt(document.getElementById('addDay')?.value)||1;task.postponeSat=document.getElementById('addPostpone')?.value==='true';task.typeLabel=`月度 · 每月${task.day}号`;task.desc=`每月${task.day}号${task.postponeSat?'，遇周六顺延':''}`}
     else if(type==='weekly'){task.weekday=parseInt(document.getElementById('addWeekday')?.value)||5;const dn=['日','一','二','三','四','五','六'];task.typeLabel=`每周 · 周${dn[task.weekday]}`;task.desc=`每周${dn[task.weekday]}完成`}
-    else if(type==='monthly旬'){task.type='旬';task.typeLabel='月度 · 每旬';task.desc='每月3次，每旬完成一次'}
-    else if(type==='monthly_range'){task.type='monthly_range';task.monthParts=[{label:'第1篇',before:parseInt(document.getElementById('addBefore')?.value)||15},{label:'第2篇',after:parseInt(document.getElementById('addAfter')?.value)||25}];task.partCompletions={};task.typeLabel='月度 · 范围';task.desc=`第1篇${task.monthParts[0].before}号前，第2篇${task.monthParts[1].after}号后`}
+    else if(type==='monthly旬'){task.type='旬';task.multiCompletion=true;task.typeLabel='月度 · 每旬';task.desc='每月3次，每旬完成一次'}
+    else if(type==='monthly_range'){task.type='monthly_range';task.multiCompletion=true;task.monthParts=[{label:'第1篇',before:parseInt(document.getElementById('addBefore')?.value)||15},{label:'第2篇',after:parseInt(document.getElementById('addAfter')?.value)||25}];task.partCompletions={};task.typeLabel='月度 · 范围';task.desc=`第1篇${task.monthParts[0].before}号前，第2篇${task.monthParts[1].after}号后`}
     this.tasks.push(task);this.save();this.render();document.getElementById('addName').value='';document.getElementById('addNote').value='';this.toast('✅ 任务已添加');this.switchPage('pageDashboard');
   }
 
