@@ -508,7 +508,8 @@ class App {
     else{xunIdx=3;xunEnd=new Date(y,m+1,0).getDate()}
     // Check if current旬 is completed
     const xunKey=`${y}-${m}-${xunIdx}`;
-    if(task.completions[xunKey]){
+    const xunData=task.completions[xunKey];
+    if(xunData&&(Array.isArray(xunData)?xunData.length>0:true)){
       // Find next旬's target date for display
       let nextXunStart,nextXunIdx;
       if(xunIdx<3){nextXunIdx=xunIdx+1;nextXunStart=new Date(y,m,(xunIdx)*10+1)}
@@ -578,7 +579,12 @@ class App {
       const d=targetDate.getDate(),y=targetDate.getFullYear(),m=targetDate.getMonth();
       let xunIdx;if(d<=10)xunIdx=1;else if(d<=20)xunIdx=2;else xunIdx=3;
       const xunKey=`${y}-${m}-${xunIdx}`;
-      task.completions[xunKey]={ts:now,date:`${m+1}月${d}日`}; // always update, same xun replaces previous date
+      // Convert old single-object format to array if needed
+      if(task.completions[xunKey]&&!Array.isArray(task.completions[xunKey]))task.completions[xunKey]=[task.completions[xunKey]];
+      if(!task.completions[xunKey])task.completions[xunKey]=[];
+      const entry={ts:now,date:`${m+1}月${d}日`};
+      if(task.completions[xunKey].length<2)task.completions[xunKey].push(entry);
+      else task.completions[xunKey][1]=entry; // 3rd replaces 2nd
       task.lastCompleted=targetDate.toISOString(); // keep for linkTo ATM reset
     }else if(task.type==='monthly_range'){
       if(!task.partCompletions)task.partCompletions={};
@@ -879,7 +885,7 @@ class App {
     if(task.id==='atm_cleaning')html+=`<div class="modal-section"><button class="modal-btn btn-reset" onclick="app.manualReset('${task.id}')">🔄 重置计时（行长查库清机）</button>${task.manualResetDates&&task.manualResetDates.length?`<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px">上次手动重置：${fmtDate(new Date(task.manualResetDates[task.manualResetDates.length-1]))}</div>`:''}</div>`;
     if(task.type==='monthly_multi'){const m=new Date().getMonth(),y=new Date().getFullYear();html+=`<div class="modal-section"><div class="modal-section-title">各节点状态</div>`;task.days.forEach(day=>{let target;if(day===1)target=new Date(y,m+1,1);else target=new Date(y,m,day);const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(target)}</span><span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ 已完成':'⬜ 待完成'}</span></div>`});html+=`</div>`}
     if(task.type==='monthly_range'){const m=new Date().getMonth(),y=new Date().getFullYear(),mk=`${y}-${m}`;if(!task.partCompletions)task.partCompletions={};html+=`<div class="modal-section"><div class="modal-section-title">各篇状态</div>`;(task.monthParts||[]).forEach((part,i)=>{const key=`${mk}-${i}`;const done=task.partCompletions[key];html+=`<div class="modal-info-row"><span class="label">${part.label} ${part.before?part.before+'号前':'25号后'}</span><span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ 已完成':'⬜ 待完成'}</span></div>`});html+=`</div>`}
-    if(task.type==='旬'){const m=new Date().getMonth(),y=new Date().getFullYear();if(!task.completions)task.completions={};html+=`<div class="modal-section"><div class="modal-section-title">本月各旬状态</div>`;const xunLabels=['第1旬（1-10号）','第2旬（11-20号）','第3旬（21-月末）'];xunLabels.forEach((label,i)=>{const key=`${y}-${m}-${i+1}`;raw=task.completions[key];const arr=Array.isArray(raw)?raw:raw?[raw]:[];const display=arr.length?arr.map(r=>r.date||'已完成').join(' + '):null;html+=`<div class=\"modal-info-row\"><span class=\"label\">${label}</span><span class=\"value\" style=\"color:${arr.length?'var(--green)':'var(--text3)'}\">${arr.length?'✅ '+display:'⬜ 待完成'}</span></div>`});html+=`</div>`}
+    if(task.type==='旬'){const m=new Date().getMonth(),y=new Date().getFullYear();if(!task.completions)task.completions={};html+=`<div class="modal-section"><div class="modal-section-title">本月各旬状态</div>`;const xunLabels=['第1旬（1-10号）','第2旬（11-20号）','第3旬（21-月末）'];xunLabels.forEach((label,i)=>{const key=`${y}-${m}-${i+1}`;const raw=task.completions[key];const arr=Array.isArray(raw)?raw:raw?[raw]:[];const display=arr.length?arr.map(r=>r.date||'已完成').join(' + '):null;html+=`<div class="modal-info-row"><span class="label">${label}</span><span class="value" style="color:${arr.length?'var(--green)':'var(--text3)'}">${arr.length?'✅ '+display:'⬜ 待完成'}</span></div>`});html+=`</div>`}
 
     // Mini completion calendar (read-only)
     html+=this.renderMiniCalendar(task);
