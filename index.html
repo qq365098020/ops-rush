@@ -666,7 +666,7 @@ class App {
     const sevOrder={red:0,yellow:1,green:2};
     overdue.sort((a,b)=>(sevOrder[a.severity]||3)-(sevOrder[b.severity]||3));
     upcoming.sort((a,b)=>{if(a._status.daysLeft===null)return 1;if(b._status.daysLeft===null)return -1;return a._status.daysLeft-b._status.daysLeft});
-    const upcomingActive=upcoming.filter(t=>t._status.status!=='done'&&(t.multiCompletion?!this.isMonthFullyComplete(t):true));
+    const upcomingActive=upcoming.filter(t=>t._status.status!=='done'||(t.multiCompletion&&!this.isMonthFullyComplete(t)));
     const doneTasks=[...upcoming.filter(t=>t._status.status==='done'&&(!t.multiCompletion||this.isMonthFullyComplete(t))),...done];
 
     document.getElementById('tabBar').innerHTML=`
