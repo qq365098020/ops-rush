@@ -648,8 +648,8 @@ class App {
     const sevOrder={red:0,yellow:1,green:2};
     overdue.sort((a,b)=>(sevOrder[a.severity]||3)-(sevOrder[b.severity]||3));
     upcoming.sort((a,b)=>{if(a._status.daysLeft===null)return 1;if(b._status.daysLeft===null)return -1;return a._status.daysLeft-b._status.daysLeft});
-    const upcomingActive=upcoming.filter(t=>t._status.status!=='done');
-    const doneTasks=[...upcoming.filter(t=>t._status.status==='done'),...done];
+    const upcomingActive=upcoming.filter(t=>t._status.status!=='done'||t.multiCompletion);
+    const doneTasks=[...upcoming.filter(t=>t._status.status==='done'&&!t.multiCompletion),...done];
 
     document.getElementById('tabBar').innerHTML=`
       <div class="tab-item ${this.activeTab==='overdue'?'active':''}" data-tab="overdue" onclick="app.switchTab('overdue')"><span class="tab-num">${overdue.length}</span><span class="tab-label">待处理</span></div>
