@@ -111,14 +111,14 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .task-card .card-countdown.overdue-text{color:var(--red)}
 .task-card .card-countdown.soon-text{color:var(--yellow)}
 .task-card .card-countdown.ok-text{color:var(--text3)}
-.task-card.frozen{opacity:.5;border-style:dashed}
-.task-card.frozen .card-tag{background:rgba(0,0,0,.04);color:var(--text3)}
-.task-card .frozen-badge{font-size:10px;color:var(--text3);background:rgba(0,0,0,.04);padding:2px 6px;border-radius:6px}
+
+
+
 
 /* Quick complete button */
 .card-done-btn{width:36px;height:36px;border-radius:50%;border:2px solid rgba(52,199,89,.35);background:rgba(52,199,89,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;cursor:pointer;font-size:15px;color:var(--green)}
 .card-done-btn:active{transform:scale(.85);background:rgba(52,199,89,.25);border-color:var(--green)}
-.task-card.frozen .card-done-btn,.done-card .card-done-btn{opacity:.3;pointer-events:none}
+.done-card .card-done-btn{opacity:.3;pointer-events:none}
 
 /* Done card */
 .done-card{opacity:.55}
@@ -144,8 +144,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .btn-complete{background:linear-gradient(135deg,#34c759,#28a745);color:#fff}
 .btn-undo{background:linear-gradient(135deg,#ff9500,#ff6b00);color:#fff}
 .btn-reset{background:linear-gradient(135deg,#007aff,#5856d6);color:#fff}
-.btn-freeze{background:var(--glass2);color:var(--text);border:1px solid var(--glass-border)}
-.btn-freeze.frozen{background:rgba(255,149,0,.12);color:var(--yellow)}
+
+
 .btn-close{background:var(--glass);color:var(--text2);border:1px solid var(--glass-border)}
 .btn-delete{background:rgba(255,59,48,.08);color:var(--red);border:1px solid rgba(255,59,48,.15)}
 
@@ -189,6 +189,18 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .review-item .review-date{font-size:11px;color:var(--text3)}
 .review-item .review-note{font-size:13px;margin-top:4px;color:var(--text)}
 
+/* Mini calendar (read-only completion history) */
+.mini-cal{background:rgba(0,0,0,.02);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,.05);border-radius:12px;padding:10px 12px;opacity:.75;pointer-events:none}
+.mini-cal-header{font-size:13px;font-weight:600;color:var(--text2);text-align:center;margin-bottom:6px}
+.mini-cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px}
+.mini-cal-weekdays span{font-size:10px;font-weight:600;color:var(--text3)}
+.mini-cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.mini-cal-day{font-size:11px;line-height:22px;width:22px;height:22px;margin:0 auto;border-radius:50%;color:var(--text)}
+.mini-cal-day.other{color:var(--text3);opacity:.3}
+.mini-cal-day.today{font-weight:700;position:relative}
+.mini-cal-day.today::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--blue)}
+.mini-cal-day.done{background:rgba(52,199,89,.18);color:var(--green);font-weight:600}
+
 /* ===== Calendar Picker ===== */
 .calendar-container{background:var(--glass);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);border:1px solid var(--glass-border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
 .calendar-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
@@ -213,7 +225,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 /* Calendar picker button on card */
 .card-cal-btn{width:36px;height:36px;border-radius:50%;border:2px solid rgba(0,122,255,.3);background:rgba(0,122,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;cursor:pointer;font-size:14px;color:var(--blue)}
 .card-cal-btn:active{transform:scale(.85);background:rgba(0,122,255,.2);border-color:var(--blue)}
-.task-card.frozen .card-cal-btn,.done-card .card-cal-btn{opacity:.3;pointer-events:none}
+.done-card .card-cal-btn{opacity:.3;pointer-events:none}
 
 /* Calendar overlay (transparent glass, 0.6s) */
 .cal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:110;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .6s ease}
@@ -355,21 +367,21 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 
 <script>
 const DEFAULT_TASKS = [
-  {id:'anti_money_laundering',name:'反洗钱检查',type:'rolling',severity:'red',intervalDays:3,lastCompleted:null,frozen:false,reviews:[],note:'',typeLabel:'滚动 · 每3天',desc:'从上次完成日起计算，满3天未完成则标红预警。周六关门日计入天数。'},
-  {id:'atm_cleaning',name:'ATM清机',type:'rolling',severity:'red',intervalDays:4,lastCompleted:null,frozen:false,reviews:[],note:'',manualResetDates:[],typeLabel:'滚动 · 每4天',desc:'至少每4天清机一次。完成"每旬查库"会自动重置本任务。行长查库清机请点下方重置按钮。',linkedFrom:'inventory_check'},
-  {id:'atm_register',name:'ATM机登记本',type:'rolling',severity:'yellow',intervalDays:4,lastCompleted:null,frozen:false,reviews:[],note:'',typeLabel:'滚动 · 每4天',desc:'至少每4天登记一次。周六关门日计入天数。'},
-  {id:'inventory_check',name:'每旬查库',type:'旬',severity:'red',lastCompleted:null,frozen:false,reviews:[],note:'',completions:{},typeLabel:'月度 · 每旬',desc:'每月3次：1-10号、11-20号、21-31号各完成一次。每旬开始即持续提醒。周六关门日截止日顺延。完成本任务会自动重置"ATM清机"计时。',linkTo:'atm_cleaning'},
-  {id:'security_study',name:'安保本学习记录',type:'monthly_range',severity:'yellow',lastCompleted:null,frozen:false,reviews:[],note:'',monthParts:[{label:'第1篇',before:15},{label:'第2篇',after:25}],typeLabel:'月度 · 2篇/月',desc:'第1篇：15号之前完成。第2篇：25号之后完成（抄中心社内容）。'},
-  {id:'counterfeit_surrender',name:'反假币上缴登记',type:'monthly_fixed',severity:'green',day:1,postponeSat:true,frozen:false,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延至下一工作日。'},
-  {id:'monthly_stats',name:'每月统计业务量',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,frozen:false,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延至下一工作日。'},
-  {id:'ticket_binding',name:'装订票',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,frozen:false,reviews:[],note:'若当月某周六为网点轮休关门日，需在该日期对应的票据后附加一张说明纸，格式为：网点轮休：北环路分理处 YYYY.MM.DD 周末轮休无票（日期填写实际关门日期）',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'装订上月全部票据。遇周六顺延。操作备注常驻显示。',hasPersistentNote:true},
-  {id:'subject_print',name:'科目打印 7156/7232/1212/7608/7153',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,frozen:false,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'遇周六顺延至下一工作日。'},
-  {id:'call_9999',name:'打9999',type:'monthly_multi',severity:'red',days:[25,26,27,1],frozen:false,reviews:[],note:'',completions:{},typeLabel:'月度 · 4次/月',desc:'每月25、26、27号及次月1号各打一次，共4次。每次独立标记。'},
-  {id:'balance_print',name:'科目余额查询及打印 1221/2011/2014/2232/2241/2314',type:'monthly_fixed',severity:'red',day:1,postponeSat:true,frozen:false,reviews:[],note:'在6301科目号处依次输入以上6个科目查询余额；有余额的复制账号，在6303中粘贴账号，按整月打印，所有科目打印在同一张纸上，仅在第一页签名。',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'遇周六顺延至下一工作日。操作备注常驻显示。',hasPersistentNote:true},
-  {id:'personal_security',name:'个人安保学习本',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,frozen:false,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延。'},
-  {id:'alarm_test',name:'测试报警器并登记',type:'monthly_flexible',severity:'red',remindFrom:5,frozen:false,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1次',desc:'每月完成一次即可。5号起开始提醒，月末未完成标红加急。'},
-  {id:'wall_safety',name:'墙上安全检查',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,frozen:false,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延。'},
-  {id:'computer_log',name:'计算机操作日志',type:'weekly',severity:'yellow',weekday:5,frozen:false,reviews:[],note:'',lastCompleted:null,typeLabel:'每周 · 周五',desc:'每周五提醒，当天未完成则标黄预警。'}
+  {id:'anti_money_laundering',name:'反洗钱检查',type:'rolling',severity:'red',intervalDays:3,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每3天',desc:'从上次完成日起计算，满3天未完成则标红预警。周六关门日计入天数。'},
+  {id:'atm_cleaning',name:'ATM清机',type:'rolling',severity:'red',intervalDays:4,lastCompleted:null,reviews:[],note:'',manualResetDates:[],typeLabel:'滚动 · 每4天',desc:'至少每4天清机一次。完成"每旬查库"会自动重置本任务。行长查库清机请点下方重置按钮。',linkedFrom:'inventory_check'},
+  {id:'atm_register',name:'ATM机登记本',type:'rolling',severity:'yellow',intervalDays:4,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每4天',desc:'至少每4天登记一次。周六关门日计入天数。'},
+  {id:'inventory_check',name:'每旬查库',type:'旬',severity:'red',lastCompleted:null,reviews:[],note:'',completions:{},typeLabel:'月度 · 每旬',desc:'每月3次：1-10号、11-20号、21-31号各完成一次。每旬开始即持续提醒。周六关门日截止日顺延。完成本任务会自动重置"ATM清机"计时。',linkTo:'atm_cleaning'},
+  {id:'security_study',name:'安保本学习记录',type:'monthly_range',severity:'yellow',lastCompleted:null,reviews:[],note:'',monthParts:[{label:'第1篇',before:15},{label:'第2篇',after:25}],typeLabel:'月度 · 2篇/月',desc:'第1篇：15号之前完成。第2篇：25号之后完成（抄中心社内容）。'},
+  {id:'counterfeit_surrender',name:'反假币上缴登记',type:'monthly_fixed',severity:'green',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延至下一工作日。'},
+  {id:'monthly_stats',name:'每月统计业务量',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延至下一工作日。'},
+  {id:'ticket_binding',name:'装订票',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'若当月某周六为网点轮休关门日，需在该日期对应的票据后附加一张说明纸，格式为：网点轮休：北环路分理处 YYYY.MM.DD 周末轮休无票（日期填写实际关门日期）',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'装订上月全部票据。遇周六顺延。操作备注常驻显示。',hasPersistentNote:true},
+  {id:'subject_print',name:'科目打印 7156/7232/1212/7608/7153',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'遇周六顺延至下一工作日。'},
+  {id:'call_9999',name:'打9999',type:'monthly_multi',severity:'red',days:[25,26,27,1],reviews:[],note:'',completions:{},typeLabel:'月度 · 4次/月',desc:'每月25、26、27号及次月1号各打一次，共4次。每次独立标记。'},
+  {id:'balance_print',name:'科目余额查询及打印 1221/2011/2014/2232/2241/2314',type:'monthly_fixed',severity:'red',day:1,postponeSat:true,reviews:[],note:'在6301科目号处依次输入以上6个科目查询余额；有余额的复制账号，在6303中粘贴账号，按整月打印，所有科目打印在同一张纸上，仅在第一页签名。',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'遇周六顺延至下一工作日。操作备注常驻显示。',hasPersistentNote:true},
+  {id:'personal_security',name:'个人安保学习本',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延。'},
+  {id:'alarm_test',name:'测试报警器并登记',type:'monthly_flexible',severity:'red',remindFrom:5,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1次',desc:'每月完成一次即可。5号起开始提醒，月末未完成标红加急。'},
+  {id:'wall_safety',name:'墙上安全检查',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1个工作日。遇周六顺延。'},
+  {id:'computer_log',name:'计算机操作日志',type:'weekly',severity:'yellow',weekday:5,reviews:[],note:'',lastCompleted:null,typeLabel:'每周 · 周五',desc:'每周五提醒，当天未完成则标黄预警。'}
 ];
 
 // ===== DATE UTILS =====
@@ -436,7 +448,7 @@ class App {
   // ===== STATUS CALCULATION =====
   getTaskStatus(task){
     const today=TODAY();
-    if(task.frozen)return{status:'frozen',label:'已冻结',dueDate:null,daysLeft:null};
+    
     if(task.type==='rolling'){
       if(!task.lastCompleted)return{status:'pending',label:'从未完成',dueDate:null,daysLeft:null,overdue:true};
       const last=new Date(task.lastCompleted);last.setHours(0,0,0,0);
@@ -602,11 +614,7 @@ class App {
     this.save();this.render();this.openDetail(taskId);this.toast('✅ 已重置计时');
   }
 
-  toggleFreeze(taskId){
-    const task=this.tasks.find(t=>t.id===taskId);if(!task)return;
-    task.frozen=!task.frozen;this.save();this.render();this.openDetail(taskId);
-    this.toast(task.frozen?'❄️ 任务已冻结':'🔥 任务已解冻');
-  }
+
 
   addReview(taskId,note){
     const task=this.tasks.find(t=>t.id===taskId);if(!task||!note.trim())return;
@@ -618,7 +626,7 @@ class App {
   render(){this.renderDashboard();this.renderTasks()}
 
   renderDashboard(){
-    const today=TODAY();const active=this.tasks.filter(t=>!t.frozen);const frozen=this.tasks.filter(t=>t.frozen);
+    const today=TODAY();const active=this.tasks;
     const overdue=[],upcoming=[],done=[];
     active.forEach(task=>{const s=this.getTaskStatus(task);task._status=s;
       if(s.status==='overdue')overdue.push(task);
@@ -649,7 +657,7 @@ class App {
     panels+=`<div class="tab-panel ${this.activeTab==='done'?'active':''}" data-panel="done">`;
     panels+=doneTasks.length?doneTasks.map(t=>this.renderCard(t,true)).join(''):'<div class="empty"><div class="empty-icon">📝</div><div class="empty-text">暂无已完成任务</div></div>';
     panels+=`</div>`;
-    if(frozen.length){panels+=`<div style="margin-top:14px"><div class="section"><div class="section-header collapsed" onclick="this.classList.toggle('collapsed')"><span class="icon">❄️</span><span class="title">已冻结</span><span class="count">${frozen.length}</span><span class="arrow">▼</span></div><div class="section-body" style="max-height:0">${frozen.map(t=>this.renderCard(t)).join('')}</div></div></div>`}
+    
     document.getElementById('tabContent').innerHTML=panels;
   }
 
@@ -665,12 +673,12 @@ class App {
 
   renderCard(task,isDone=false){
     const s=task._status||this.getTaskStatus(task);
-    const sevClass=`severity-${task.severity}`;const overdue=s.overdue&&!task.frozen;
-    const frozenClass=task.frozen?'frozen':'';const doneClass=isDone&&s.status==='done'?'done-card':'';
+    const sevClass=`severity-${task.severity}`;const overdue=s.overdue;
+    const doneClass=isDone&&s.status==='done'?'done-card':'';
     let cc='ok-text';if(s.overdue)cc='overdue-text';else if(s.daysLeft!==null&&s.daysLeft<=3)cc='soon-text';
-    return`<div class="task-card ${sevClass} ${overdue?'overdue':''} ${frozenClass} ${doneClass}">
+    return`<div class="task-card ${sevClass} ${overdue?'overdue':''} ${doneClass}">
       <div class="card-body" onclick="app.openDetail('${task.id}')">
-        <div class="card-top"><div class="card-name">${task.name}</div>${task.frozen?'<span class="frozen-badge">❄️ 冻结</span>':`<span class="card-tag">${this.sevLabel(task.severity)}</span>`}</div>
+        <div class="card-top"><div class="card-name">${task.name}</div>`<span class="card-tag">${this.sevLabel(task.severity)}</span>`</div>
         <div class="card-meta"><div class="card-due">${s.dueDate?'截止 '+fmtDateShort(s.dueDate):(s.label||'')}</div><div class="card-countdown ${cc}">${s.label}</div></div>
       </div>
       <div class="card-cal-btn" onclick="event.stopPropagation();app.openCalPicker('${task.id}')">📅</div>
@@ -849,11 +857,10 @@ class App {
     if(task.type==='monthly_range'){const m=new Date().getMonth(),y=new Date().getFullYear(),mk=`${y}-${m}`;if(!task.partCompletions)task.partCompletions={};html+=`<div class="modal-section"><div class="modal-section-title">各篇状态</div>`;(task.monthParts||[]).forEach((part,i)=>{const key=`${mk}-${i}`;const done=task.partCompletions[key];html+=`<div class="modal-info-row"><span class="label">${part.label} ${part.before?part.before+'号前':'25号后'}</span><span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ 已完成':'⬜ 待完成'}</span></div>`});html+=`</div>`}
     if(task.type==='旬'){const m=new Date().getMonth(),y=new Date().getFullYear();if(!task.completions)task.completions={};html+=`<div class="modal-section"><div class="modal-section-title">本月各旬状态</div>`;const xunLabels=['第1旬（1-10号）','第2旬（11-20号）','第3旬（21-月末）'];xunLabels.forEach((label,i)=>{const key=`${y}-${m}-${i+1}`;const done=task.completions[key];const displayDate=done?(done.date||`${y}年${m+1}月完成`):null;html+=`<div class="modal-info-row"><span class="label">${label}</span><span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ '+displayDate:'⬜ 待完成'}</span></div>`});html+=`</div>`}
 
-    // Review input
-    html+=`<div class="modal-section"><div class="modal-section-title">添加复盘备注</div><div style="display:flex;gap:8px"><input class="form-input" id="reviewInput" placeholder="一句话备注..." style="flex:1"><button class="modal-btn btn-complete" style="width:auto;padding:12px 20px;margin:0" onclick="app.addReview('${task.id}',document.getElementById('reviewInput').value)">保存</button></div></div>`;
-    if(task.reviews&&task.reviews.length)html+=`<div class="modal-section"><div class="modal-section-title">历史备注</div>${task.reviews.slice(0,10).map(r=>`<div class="review-item"><div class="review-date">${fmtDate(new Date(r.date))}</div><div class="review-note">${r.note}</div></div>`).join('')}</div>`;
+    // Mini completion calendar (read-only)
+    html+=this.renderMiniCalendar(task);
 
-    // Action buttons
+    // Action buttons - always show complete button
     html+=`<div class="modal-section">`;
     const hasCompletion=task.lastCompleted||(task.completions&&Object.keys(task.completions).length>0)||(task.partCompletions&&Object.keys(task.partCompletions).length>0);
     if(hasCompletion){
@@ -865,12 +872,15 @@ class App {
       html+=`<button class="modal-btn btn-complete" onclick="app.openCalendarForComplete('${task.id}')">✅ 完成一篇</button>`;
     }else if(task.type==='旬'){
       html+=`<button class="modal-btn btn-complete" onclick="app.openCalendarForComplete('${task.id}')">✅ 完成本旬</button>`;
-    }else if(!hasCompletion){
+    }else{
       html+=`<button class="modal-btn btn-complete" onclick="app.openCalendarForComplete('${task.id}')">✅ 标记完成</button>`;
     }
-    html+=`<button class="modal-btn ${task.frozen?'btn-freeze frozen':'btn-freeze'}" onclick="app.toggleFreeze('${task.id}')">${task.frozen?'🔥 解冻任务':'❄️ 冻结任务'}</button>`;
     if(!DEFAULT_TASKS.find(d=>d.id===task.id))html+=`<button class="modal-btn btn-delete" onclick="app.deleteTask('${task.id}')">🗑️ 删除任务</button>`;
     html+=`<button class="modal-btn btn-close" onclick="app.closeDetail()">关闭</button></div>`;
+
+    // Review input (bottom of detail)
+    html+=`<div class="modal-section"><div class="modal-section-title">📝 复盘备注</div><div style="display:flex;gap:8px"><input class="form-input" id="reviewInput" placeholder="一句话备注..." style="flex:1"><button class="modal-btn btn-complete" style="width:auto;padding:12px 20px;margin:0" onclick="app.addReview('${task.id}',document.getElementById('reviewInput').value)">保存</button></div></div>`;
+    if(task.reviews&&task.reviews.length)html+=`<div class="modal-section"><div class="modal-section-title">历史备注</div>${task.reviews.slice(0,10).map(r=>`<div class="review-item"><div class="review-date">${fmtDate(new Date(r.date))}</div><div class="review-note">${r.note}</div></div>`).join('')}</div>`;
 
     document.getElementById('detailContent').innerHTML=html;
     document.getElementById('detailModal').classList.add('show');
@@ -878,10 +888,46 @@ class App {
 
   closeDetail(){document.getElementById('detailModal').classList.remove('show')}
 
+  renderMiniCalendar(task){
+    // Collect all completion dates for this task
+    const doneDates=new Set();
+    // Rolling/simple: lastCompleted
+    if(task.lastCompleted){const d=new Date(task.lastCompleted);d.setHours(0,0,0,0);doneDates.add(d.toDateString())}
+    // Monthly multi: completions dict
+    if(task.completions){Object.keys(task.completions).forEach(k=>{const d=new Date(k);if(!isNaN(d))doneDates.add(d.toDateString())})}
+    // Monthly range: partCompletions
+    if(task.partCompletions){Object.keys(task.partCompletions).forEach(k=>{const [y,m]=k.split('-').map(Number);const d=new Date(y,m,15);doneDates.add(d.toDateString())})}
+    // Manual reset dates
+    if(task.manualResetDates){task.manualResetDates.forEach(d=>{const dt=new Date(d);dt.setHours(0,0,0,0);doneDates.add(dt.toDateString())})}
+
+    const today=TODAY();const y=today.getFullYear();const m=today.getMonth();
+    const firstDay=new Date(y,m,1);const startDay=(firstDay.getDay()+6)%7;
+    const daysInMonth=new Date(y,m+1,0).getDate();const daysInPrev=new Date(y,m,0).getDate();
+    const monthNames=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    const weekdays=['一','二','三','四','五','六','日'];
+
+    let cal=`<div class="mini-cal">
+      <div class="mini-cal-header">${y}年${monthNames[m]}</div>
+      <div class="mini-cal-weekdays">${weekdays.map(w=>`<span>${w}</span>`).join('')}</div>
+      <div class="mini-cal-days">`;
+    for(let i=startDay-1;i>=0;i--){cal+=`<div class="mini-cal-day other">${daysInPrev-i}</div>`}
+    for(let d=1;d<=daysInMonth;d++){
+      const date=new Date(y,m,d);const isToday=this.isSameDay(date,today);
+      const isDone=doneDates.has(date.toDateString());
+      const cls=['mini-cal-day'];
+      if(isToday)cls.push('today');if(isDone)cls.push('done');
+      cal+=`<div class="${cls.join(' ')}">${d}</div>`;
+    }
+    const total=startDay+daysInMonth;const rem=total%7===0?0:7-total%7;
+    for(let d=1;d<=rem;d++){cal+=`<div class="mini-cal-day other">${d}</div>`}
+    cal+=`</div></div>`;
+    return `<div class="modal-section"><div class="modal-section-title">📅 完成记录</div>${cal}</div>`;
+  }
+
   addTask(){
     const name=document.getElementById('addName').value.trim();if(!name){this.toast('⚠️ 请输入任务名称');return}
     const type=document.getElementById('addType').value;const severity=document.getElementById('addSeverity').value;const note=document.getElementById('addNote').value.trim();
-    const task={id:'custom_'+Date.now(),name,type,severity,frozen:false,reviews:[],note:'',lastCompleted:null};
+    const task={id:'custom_'+Date.now(),name,type,severity,reviews:[],note:'',lastCompleted:null};
     if(type==='rolling'){task.intervalDays=parseInt(document.getElementById('addInterval')?.value)||3;task.typeLabel=`滚动 · 每${task.intervalDays}天`;task.desc=`每隔${task.intervalDays}天完成一次`}
     else if(type==='monthly_fixed'){task.day=parseInt(document.getElementById('addDay')?.value)||1;task.postponeSat=document.getElementById('addPostpone')?.value==='true';task.typeLabel=`月度 · 每月${task.day}号`;task.desc=`每月${task.day}号${task.postponeSat?'，遇周六顺延':''}`}
     else if(type==='weekly'){task.weekday=parseInt(document.getElementById('addWeekday')?.value)||5;const dn=['日','一','二','三','四','五','六'];task.typeLabel=`每周 · 周${dn[task.weekday]}`;task.desc=`每周${dn[task.weekday]}完成`}
