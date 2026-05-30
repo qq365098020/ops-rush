@@ -323,7 +323,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
     </div>
     <div class="setting-group-title">关于</div>
     <div class="setting-item">
-      <div><div class="setting-label">运营RUSH v1.7</div></div>
+      <div><div class="setting-label">运营RUSH v1.8</div></div>
     </div>
   </div>
 
@@ -616,6 +616,7 @@ class App {
     }else if(task.type==='monthly_range'){
       if(task.partCompletions){const keys=Object.keys(task.partCompletions);if(keys.length){delete task.partCompletions[keys[keys.length-1]]}}
     }else{
+      if(task.completionHistory&&task.completionHistory.length)task.completionHistory.pop();
       task.lastCompleted=null;
     }
     this.save();this.render();this.openDetail(taskId);this.toast('↩️ 已撤销完成');
