@@ -414,6 +414,9 @@ class App {
           if(latest)t.lastCompleted=latest.toISOString();
         }
       });
+      // 强制修复: 反洗钱检查 intervalDays 必须为 2
+      const aml=this.tasks.find(t=>t.id==='anti_money_laundering');
+      if(aml&&aml.intervalDays!==2){aml.intervalDays=2;aml.typeLabel='滚动 · 每2天';aml.desc='从上次完成日起计算，满2天未完成则标红预警。周六关门日计入天数。'}
       this.save();
     }catch(e){this.tasks=JSON.parse(JSON.stringify(DEFAULT_TASKS))}
   }
