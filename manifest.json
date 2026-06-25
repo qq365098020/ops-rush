@@ -1,15 +1,21 @@
 {
   "name": "运营RUSH",
   "short_name": "运营RUSH",
+  "version": "2.5.1",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f0ebe3",
-  "theme_color": "#f0ebe3",
+  "background_color": "#0a0a1a",
+  "theme_color": "#0a0a1a",
   "icons": [
     {
-      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAL80lEQVR4nO2dW7PbNgyEIU1/dC85l6RJOtO3pv+36kMsH4pXACQhWF6+tDI2u7T9DYZHoqWFThzbP7QdX6DkcAn+G9fzpoGeqUn0zJzSy5K5curV9zMgZ9uiz1mTE9SXl/rHP3OYBe/wFj80wJytPxrM+2HsZQX51JDtB23hmwXMzJyLwRxrltd53E0x3n7c3gJgZnvE9avCHI4ZYA81vINMBJgFHnH9GWAO68vbOA6HGB1AJgLMAo+4/mwwh2ME2GuvAWDWe8T1Z4aZiGj7zHqX1dEFNGDWe8T1Z4f5Xu6EWtXiE5CJALPAI64D5lSzEdH6LudT3KEBc59HXAfMqWb3/+9d3q1FQAPmPo+4DphTTczGJoSaDTRg7vOI64A51SRs7GUB1Cy",
+      "src": "icon-180.png",
       "sizes": "180x180",
       "type": "image/png"
+    },
+    {
+      "src": "logo-original.jpg",
+      "sizes": "1254x1254",
+      "type": "image/jpeg"
     }
   ]
 }
