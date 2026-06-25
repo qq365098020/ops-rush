@@ -398,6 +398,11 @@ class App {
         const def=DEFAULT_TASKS.find(d=>d.id===t.id);
         if(def){
           if(def.day!==undefined&&t.day!==undefined&&t.day!==def.day){t.day=def.day;t.typeLabel=def.typeLabel;t.desc=def.desc} if(def.weekday!==undefined&&t.weekday!==undefined&&t.weekday!==def.weekday){t.weekday=def.weekday;t.typeLabel=def.typeLabel;t.desc=def.desc}
+          // 滚动任务: 同步intervalDays和描述
+          if(t.type==='rolling'&&def.intervalDays!==undefined){
+            if(t.intervalDays!==def.intervalDays){t.intervalDays=def.intervalDays}
+            t.typeLabel=def.typeLabel;t.desc=def.desc;
+          }
         }
         if(t.type==='旬'||t.type==='monthly_range'||t.type==='monthly_multi')t.multiCompletion=true;
         if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[]}
