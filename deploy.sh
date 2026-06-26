@@ -18,7 +18,7 @@ cd "$REPO"
 git add -A
 git commit -m "v${TIMESTAMP}: ${COMMIT_MSG}"
 
-TOKEN=$(strings -e l ~/桌面/各种API\\ Key.wps 2>/dev/null | grep 'ghp_' | head -1)
+TOKEN=$(strings -e l ~/桌面/各种API\ Key.wps 2>/dev/null | grep 'ghp_' | head -1)
 git push "https://qq365098020:${TOKEN}@github.com/qq365098020/ops-rush.git" master 2>&1
 # 同步到main分支（GitHub Pages部署源）
 git checkout main && git reset --hard master && git push "https://qq365098020:${TOKEN}@github.com/qq365098020/ops-rush.git" main --force 2>&1 && git checkout master 2>&1
