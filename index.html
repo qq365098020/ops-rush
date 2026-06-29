@@ -804,9 +804,9 @@ class App {
       else if(s.status==='today')overdue.push(task); // 今天到期也算待处理
       else if(s.status==='done'&&(!task.multiCompletion||this.isMonthFullyComplete(task)))done.push(task);
       else if(s.status==='done'&&task.multiCompletion&&!this.isMonthFullyComplete(task))upcoming.push(task);
+      else if(s.status==='pending')overdue.push(task);
       else if(s.status==='soon'||(s.daysLeft!==null&&s.daysLeft<=3))upcoming.push(task);
       else if(s.status==='ok')upcoming.push(task);
-      else if(s.status==='pending')overdue.push(task);
     });
     const sevOrder={red:0,yellow:1,green:2};
     overdue.sort((a,b)=>(sevOrder[a.severity]||3)-(sevOrder[b.severity]||3));
