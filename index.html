@@ -414,6 +414,9 @@ class App {
             if(t.intervalDays!==def.intervalDays){t.intervalDays=def.intervalDays}
             t.typeLabel=def.typeLabel;t.desc=def.desc;
           }
+          // 同步联动字段 linkTo/linkedFrom（使旧数据能触发联动重置）
+          if(def.linkTo!==undefined)t.linkTo=def.linkTo;
+          if(def.linkedFrom!==undefined)t.linkedFrom=def.linkedFrom;
         }
         if(t.type==='旬'||t.type==='monthly_range'||t.type==='monthly_multi')t.multiCompletion=true;
         if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[]}
