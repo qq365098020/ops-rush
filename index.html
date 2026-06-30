@@ -1094,7 +1094,7 @@ class App {
   renderMiniCalendar(task,slideDir){
     // Collect ALL completion dates for this task (across all months)
     const doneDates=new Set();
-    if(task.lastCompleted){const d=new Date(task.lastCompleted);d.setHours(0,0,0,0);doneDates.add(d.toDateString())}
+    if(task.lastCompleted&&task.type!=='旬'){const d=new Date(task.lastCompleted);d.setHours(0,0,0,0);doneDates.add(d.toDateString())}
     if(task.completionHistory){task.completionHistory.forEach(h=>{const parts=chDate(h).split('-');if(parts.length===3){const d=new Date(parseInt(parts[0]),parseInt(parts[1]),parseInt(parts[2]));doneDates.add(d.toDateString())}})}
     if(task.completions){
       if(task.type==='旬'){
