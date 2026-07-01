@@ -374,7 +374,7 @@ const DEFAULT_TASKS = [
 {id:'alarm_test',name:'测试报警器并登记',type:'monthly_fixed',severity:'red',day:15,postponeSat:'fri',reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月15号',desc:'每月15号完成。遇周六提前至周五。'},
   {id:'wall_safety',name:'墙上安全检查',type:'monthly_fixed',severity:'yellow',day:15,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月15号',desc:'每月15号完成。遇周六推迟至周日。'},
   {id:'computer_log',name:'计算机操作日志',type:'weekly',severity:'yellow',weekday:5,reviews:[],note:'',lastCompleted:null,typeLabel:'每周 · 周五',desc:'每周五提醒，当天未完成则标黄预警。'},
-  {id:'safety_check',name:'安全检查',type:'weekly',severity:'yellow',weekday:0,multiCompletion:true,monthlyTarget:4,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 4次/月',desc:'每周日前完成，本月共需4次。检查项目：应急灯、灭火器、报警器、电话、十分钟监控。'}
+  {id:'safety_check',name:'安全检查',type:'weekly',severity:'yellow',weekday:0,multiCompletion:true,monthlyTarget:4,weekStart:1,reviews:[],note:'',lastCompleted:null,typeLabel:'每周 · 周一~周日 · 4次/月',desc:'每周一至周日期间完成1次，本月共需4次。检查项目：应急灯、灭火器、报警器、电话、十分钟监控。'}
 ];
 
 // ===== DATE UTILS =====
@@ -419,7 +419,7 @@ class App {
           if(def.linkedFrom!==undefined)t.linkedFrom=def.linkedFrom;
         }
         if(t.type==='旬'||t.type==='monthly_range'||t.type==='monthly_multi')t.multiCompletion=true;
-        if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[]}
+        if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[];t.weekStart=1}
         if(t.type==='rolling'&&!t.completionHistory)t.completionHistory=[];
         // 修复: rolling任务 lastCompleted 为空时从 completionHistory 恢复
         if(t.type==='rolling'&&!t.lastCompleted&&t.completionHistory&&t.completionHistory.length){
@@ -514,6 +514,7 @@ class App {
     if(task.type==='旬')return this.getXunStatus(task,today);
     if(task.type==='monthly_range')return this.getMonthlyRangeStatus(task,today);
     if(task.type==='monthly_flexible')return this.getFlexibleStatus(task,today);
+    if(task.type==='weekly'&&task.weekStart!==undefined)return this.getWeekCycleStatus(task,today);
     if(task.type==='weekly'){
       const diff=(task.weekday-today.getDay()+7)%7;
       // Count monthly completions for multi tasks
@@ -575,6 +576,24 @@ class App {
     const xunDaysLeft=daysBetween(today,xunEndTarget);
     if(xunDaysLeft<0)return{status:'overdue',label:'本旬已逾期',dueDate:xunEndTarget,daysLeft:xunDaysLeft,overdue:true,isXun:true};
     return{status:'pending',label:'本旬待完成',dueDate:xunEndTarget,daysLeft:xunDaysLeft,overdue:false,isXun:true};
+  }
+
+  getWeekCycleStatus(task,today){
+    const y=today.getFullYear(),m=today.getMonth();
+    // 计算本周周一 (weekStart=1)
+    const dow=today.getDay();
+    const monOff=dow===0?6:dow-1;
+    const monday=new Date(today);monday.setDate(today.getDate()-monOff);monday.setHours(0,0,0,0);
+    const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);sunday.setHours(0,0,0,0);
+    const countMonthly=()=>{if(!task.completionHistory)return 0;return task.completionHistory.filter(h=>{const p=chDate(h).split('-');return parseInt(p[0])===y&&parseInt(p[1])===m}).length};
+    const isThisWeek=()=>{if(!task.completionHistory)return false;const s=sunday.getTime()+86400000;return task.completionHistory.some(h=>{const p=chDate(h).split('-');if(p.length<3)return false;const d=new Date(parseInt(p[0]),parseInt(p[1]),parseInt(p[2]));return d.getTime()>=monday.getTime()&&d.getTime()<s})};
+    const cnt=countMonthly();const mxt=task.monthlyTarget||4;
+    if(cnt>=mxt){const nm=new Date(monday);nm.setDate(nm.getDate()+7);return{status:'done',label:`已完成 ${cnt}/${mxt} · 本月全部完成`,dueDate:nm,daysLeft:7,overdue:false}}
+    if(isThisWeek()){const nm=new Date(monday);nm.setDate(nm.getDate()+7);return{status:'ok',label:`本周已完成 · ${cnt}/${mxt}`,dueDate:nm,daysLeft:7,overdue:false}}
+    const dl=daysBetween(today,sunday);
+    if(dl<0)return{status:'overdue',label:`上周未完成 · ${cnt}/${mxt}`,dueDate:sunday,daysLeft:dl,overdue:true};
+    if(dl===0)return{status:'today',label:`今天截止 · ${cnt}/${mxt}`,dueDate:sunday,daysLeft:0,overdue:false};
+    return{status:'pending',label:`${fmtDateShort(sunday)}前完成 · ${cnt}/${mxt}`,dueDate:sunday,daysLeft:dl,overdue:false};
   }
 
   getMultiStatus(task,today){
@@ -1027,8 +1046,27 @@ class App {
     if(task.id==='atm_cleaning')html+=`<div class="modal-section"><button class="modal-btn btn-reset" onclick="app.manualReset('${task.id}')">🔄 重置计时（行长查库清机）</button>${task.manualResetDates&&task.manualResetDates.length?`<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px">上次手动重置：${fmtDate(new Date(task.manualResetDates[task.manualResetDates.length-1]))}</div>`:''}</div>`;
     if(task.type==='monthly_multi'){const today=new Date(),m=today.getMonth(),y=today.getFullYear();let cycleMonth,cycleYear;if(today.getDate()>=25){cycleMonth=m;cycleYear=y}else{cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}html+=`<div class="modal-section"><div class="modal-section-title">各节点状态</div>`;task.days.forEach(day=>{let target;if(day===1)target=new Date(cycleYear,cycleMonth+1,1);else target=new Date(cycleYear,cycleMonth,day);const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(target)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`});html+=`</div>`}
     if(task.type==='旬'){const m=new Date().getMonth(),y=new Date().getFullYear();if(!task.completions)task.completions={};html+=`<div class="modal-section"><div class="modal-section-title">本月各旬状态</div>`;const xunLabels=['第1旬（1-10号）','第2旬（11-20号）','第3旬（21-月末）'];xunLabels.forEach((label,i)=>{const key=`${y}-${m}-${i+1}`;const raw=task.completions[key];const arr=Array.isArray(raw)?raw:raw?[raw]:[];const display=arr.length?arr.map(r=>r.date||'已完成').join(' + '):null;html+=`<div class="modal-info-row"><span class="label">${label}</span><span class="value" style="color:${arr.length?'var(--green)':'var(--text3)'}">${arr.length?'✅ '+display:'⬜ 待完成'}</span></div>`});html+=`</div>`}
-    if(task.type==='weekly'&&task.multiCompletion){
-      const m=new Date().getMonth(),y=new Date().getFullYear();
+    if(task.type==='weekly'&&task.multiCompletion&&task.weekStart!==undefined){
+    const m=new Date().getMonth(),y=new Date().getFullYear();
+    const mxt=task.monthlyTarget||4;
+    const firstDay=new Date(y,m,1);
+    let cursor=new Date(firstDay);
+    const cdow=cursor.getDay();
+    cursor.setDate(cursor.getDate()-(cdow===0?6:cdow-1));
+    const weeks=[];
+    while(weeks.length<mxt){
+      const mon=new Date(cursor);const sun=new Date(cursor);sun.setDate(cursor.getDate()+6);
+      const label=mon.getMonth()===sun.getMonth()?mon.getMonth()+1+'/'+mon.getDate()+'-'+sun.getDate()+'号':mon.getMonth()+1+'/'+mon.getDate()+'-'+(sun.getMonth()+1)+'/'+sun.getDate();
+      weeks.push({mon,sun,label});cursor.setDate(cursor.getDate()+7);
+    }
+    html+=`<div class="modal-section"><div class="modal-section-title">本月各周状态（${task.completionHistory?task.completionHistory.filter(h=>{const p=chDate(h).split('-');return parseInt(p[0])===y&&parseInt(p[1])===m}).length:0}/${mxt}）</div>`;
+    weeks.forEach((w,i)=>{
+      const done=task.completionHistory&&task.completionHistory.some(h=>{const p=chDate(h).split('-');if(p.length<3)return false;const d=new Date(parseInt(p[0]),parseInt(p[1]),parseInt(p[2]));return d>=w.mon&&d<=w.sun});
+      html+=`<div class="modal-info-row"><span class="label">第${i+1}周（${w.label}）</span><span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ 已完成':'⬜ 待完成'}</span></div>`;
+    });
+    html+=`</div>`;
+    }else if(task.type==='weekly'&&task.multiCompletion){
+    const m=new Date().getMonth(),y=new Date().getFullYear();
       const mxt=task.monthlyTarget||4;
       // Find all Sundays in the current month
       const sundays=[];
