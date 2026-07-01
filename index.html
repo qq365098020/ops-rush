@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260701-2310">
+<meta name="version" content="20260701-2331">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -610,24 +610,27 @@ class App {
 
   getMultiStatus(task,today){
     const m=today.getMonth(),y=today.getFullYear();
-    // lastNDays mode: dynamic last N days of current month
+    // lastNDays mode: last N non-Saturday days of current month
     if(task.lastNDays){
       if(!task.completions)task.completions={};
       const monthEnd=new Date(y,m+1,0);
       const lastDay=monthEnd.getDate();
-      const startDay=lastDay-task.lastNDays+1;
       const targets=[];
-      for(let d=startDay;d<=lastDay;d++){
+      let d=lastDay;
+      while(targets.length<task.lastNDays&&d>=1){
         const target=new Date(y,m,d);
-        const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;
-        const done=task.completions&&task.completions[key];
-        targets.push({target,key,done});
+        if(target.getDay()!==6){
+          const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;
+          const done=task.completions&&task.completions[key];
+          targets.unshift({target,key,done});
+        }
+        d--;
       }
       const pending=targets.filter(t=>!t.done);
       if(!pending.length)return{status:'done',label:'本月全部完成',dueDate:null,daysLeft:null,overdue:false};
       const firstPending=pending[0];
       const dl=daysBetween(today,firstPending.target);
-      const fourthToLast=new Date(y,m,startDay);
+      const fourthToLast=targets.length?targets[0].target:new Date(y,m,1);
       if(today<fourthToLast)return{status:'ok',label:`还有${daysBetween(today,fourthToLast)}天开始 · 共${task.lastNDays}次`,dueDate:fourthToLast,daysLeft:daysBetween(today,fourthToLast),overdue:false};
       if(dl<0)return{status:'overdue',label:`逾期${-dl}天 · 还剩${pending.length}次`,dueDate:firstPending.target,daysLeft:dl,overdue:true};
       if(dl===0)return{status:'today',label:`今天到期 · 还剩${pending.length}次`,dueDate:firstPending.target,daysLeft:0,overdue:false};
@@ -739,11 +742,14 @@ class App {
         const m=targetDate.getMonth(),y=targetDate.getFullYear();
         const monthEnd=new Date(y,m+1,0);
         const lastDay=monthEnd.getDate();
-        const startDay=lastDay-task.lastNDays+1;
         const targets=[];
-        for(let d=startDay;d<=lastDay;d++){
+        let d=lastDay;
+        while(targets.length<task.lastNDays&&d>=1){
           const dt=new Date(y,m,d);
-          targets.push({d:dt,key:`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`});
+          if(dt.getDay()!==6){
+            targets.push({d:dt,key:`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`});
+          }
+          d--;
         }
         let matched=false;
         const tdKey=`${targetDate.getFullYear()}-${targetDate.getMonth()}-${targetDate.getDate()}`;
@@ -857,11 +863,15 @@ class App {
       if(task.lastNDays){
         const monthEnd=new Date(y,m+1,0);
         const lastDay=monthEnd.getDate();
-        const startDay=lastDay-task.lastNDays+1;
-        for(let d=startDay;d<=lastDay;d++){
+        let count=0,d=lastDay;
+        while(count<task.lastNDays&&d>=1){
           const dt=new Date(y,m,d);
-          const key=`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
-          if(!task.completions[key])return false;
+          if(dt.getDay()!==6){
+            const key=`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+            if(!task.completions[key])return false;
+            count++;
+          }
+          d--;
         }
         return true;
       }
@@ -1102,7 +1112,7 @@ class App {
     if(task.desc)html+=`<div class="modal-section"><div class="modal-section-title">说明</div><div class="modal-note">${task.desc}</div></div>`;
     if(task.hasPersistentNote&&task.note)html+=`<div class="modal-section"><div class="modal-section-title">📋 操作备注（常驻）</div><div class="modal-note">${task.note}</div></div>`;
 
-    if(task.type==='monthly_multi'){const today=new Date(),m=today.getMonth(),y=today.getFullYear();if(task.lastNDays){const monthEnd=new Date(y,m+1,0);const lastDay=monthEnd.getDate();const startDay=lastDay-task.lastNDays+1;html+=`<div class="modal-section"><div class="modal-section-title">各节点状态（倒数${task.lastNDays}天）</div>`;for(let d=startDay;d<=lastDay;d++){const dt=new Date(y,m,d);const key=`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(dt)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`}html+=`</div>`}else{let cycleMonth,cycleYear;if(today.getDate()>=25){cycleMonth=m;cycleYear=y}else{cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}html+=`<div class="modal-section"><div class="modal-section-title">各节点状态</div>`;task.days.forEach(day=>{let target;if(day===1)target=new Date(cycleYear,cycleMonth+1,1);else target=new Date(cycleYear,cycleMonth,day);const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(target)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`});html+=`</div>`}}
+    if(task.type==='monthly_multi'){const today=new Date(),m=today.getMonth(),y=today.getFullYear();if(task.lastNDays){const monthEnd=new Date(y,m+1,0);const lastDay=monthEnd.getDate();const targets=[];let d=lastDay;while(targets.length<task.lastNDays&&d>=1){const dt=new Date(y,m,d);if(dt.getDay()!==6)targets.unshift(dt);d--}html+=`<div class="modal-section"><div class="modal-section-title">各节点状态（跳过周六）</div>`;targets.forEach(dt=>{const key=`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(dt)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`})}html+=`</div>`}else{let cycleMonth,cycleYear;if(today.getDate()>=25){cycleMonth=m;cycleYear=y}else{cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}html+=`<div class="modal-section"><div class="modal-section-title">各节点状态</div>`;task.days.forEach(day=>{let target;if(day===1)target=new Date(cycleYear,cycleMonth+1,1);else target=new Date(cycleYear,cycleMonth,day);const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(target)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`});html+=`</div>`}}
     if(task.type==='旬'){const m=new Date().getMonth(),y=new Date().getFullYear();if(!task.completions)task.completions={};html+=`<div class="modal-section"><div class="modal-section-title">本月各旬状态</div>`;const xunLabels=['第1旬（1-10号）','第2旬（11-20号）','第3旬（21-月末）'];xunLabels.forEach((label,i)=>{const key=`${y}-${m}-${i+1}`;const raw=task.completions[key];const arr=Array.isArray(raw)?raw:raw?[raw]:[];const display=arr.length?arr.map(r=>r.date||'已完成').join(' + '):null;html+=`<div class="modal-info-row"><span class="label">${label}</span><span class="value" style="color:${arr.length?'var(--green)':'var(--text3)'}">${arr.length?'✅ '+display:'⬜ 待完成'}</span></div>`});html+=`</div>`}
     if(task.type==='weekly'&&task.multiCompletion&&task.weekStart!==undefined){
       const m=new Date().getMonth(),y=new Date().getFullYear();
