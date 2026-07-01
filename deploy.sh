@@ -13,10 +13,13 @@ TIMESTAMP=$(TZ=$TZ date +"%Y%m%d-%H%M")
 # 2. 更新manifest.json版本号
 sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$TIMESTAMP\"/" "$REPO/manifest.json"
 
-# 3. 更新HTML中的meta version标签（用于app自动刷新检测）
+# 3. 创建version.json（用于app自动刷新检测，轻量级不被CDN缓存拖累）
+echo "{\"version\":\"$TIMESTAMP\"}" > "$REPO/version.json"
+
+# 4. 更新HTML中的meta version标签
 sed -i "s|<meta name=\"version\" content=\"[^\"]*\">|<meta name=\"version\" content=\"$TIMESTAMP\">|" "$REPO/index.html"
 
-# 4. 提交并推送
+# 5. 提交并推送
 cd "$REPO"
 git add -A
 git commit -m "v${TIMESTAMP}: ${COMMIT_MSG}"
