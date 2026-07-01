@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260625-1750">
+<meta name="version" content="20260701-2258">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -357,6 +357,26 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
   var cv=localStorage.getItem('_app_version');
   if(v&&cv&&v!==cv){localStorage.setItem('_app_version',v);location.reload();return;}
   if(v)localStorage.setItem('_app_version',v);
+  // Auto-refresh: check version when returning to tab, and periodically
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden){
+      var nv=document.querySelector('meta[name="version"]')?.content;
+      var ov=localStorage.getItem('_app_version');
+      if(nv&&ov&&nv!==ov){localStorage.setItem('_app_version',nv);location.reload()}
+    }
+  });
+  setInterval(function(){
+    var x=new XMLHttpRequest();
+    x.open('GET','/ops-rush/?_t='+Date.now(),false);
+    x.send();
+    if(x.status===200){
+      var m=x.responseText.match(/<meta name="version" content="([^"]+)">/);
+      if(m&&m[1]){
+        var ov=localStorage.getItem('_app_version');
+        if(ov&&m[1]!==ov){localStorage.setItem('_app_version',m[1]);location.reload()}
+      }
+    }
+  },120000);
 })();
 const DEFAULT_TASKS = [
   {id:'anti_money_laundering',name:'反洗钱检查',type:'rolling',severity:'red',intervalDays:2,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每2天',desc:'从上次完成日起计算，满2天未完成则标红预警。周六关门日计入天数。'},
@@ -368,7 +388,7 @@ const DEFAULT_TASKS = [
   {id:'monthly_stats',name:'每月统计业务量',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1天完成。遇周六推迟至周日。'},
   {id:'ticket_binding',name:'装订票',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'若当月某周六为网点轮休关门日，需在该日期对应的票据后附加一张说明纸，格式为：网点轮休：北环路分理处 YYYY.MM.DD 周末轮休无票（日期填写实际关门日期）',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'装订上月全部票据。遇周六推迟至周日。操作备注常驻显示。',hasPersistentNote:true},
   {id:'subject_print',name:'科目打印 7156/7232/1212/7608/7153',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'遇周六推迟至周日。'},
-  {id:'call_9999',name:'打9999',type:'monthly_multi',severity:'red',days:[],lastNDays:4,reviews:[],note:'',completions:{},typeLabel:'月度 · 最后4天',desc:'每月最后4天各完成一次（交易代码9999），共4次。每次独立标记。倒数第4天起进入待处理。'},
+  {id:'call_9999',name:'打9999',type:'monthly_multi',severity:'red',days:[],lastNDays:4,reviews:[],note:'',completions:{},typeLabel:'月度 · 最后4天',desc:''},
   {id:'balance_print',name:'科目余额查询及打印 1221/2011/2014/2232/2241/2314',type:'monthly_fixed',severity:'red',day:1,postponeSat:true,reviews:[],note:'在6301科目号处依次输入以上6个科目查询余额；有余额的复制账号，在6303中粘贴账号，按整月打印，所有科目打印在同一张纸上，仅在第一页签名。',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'遇周六推迟至周日。操作备注常驻显示。',hasPersistentNote:true},
   {id:'personal_security',name:'个人安保学习本',type:'monthly_fixed',severity:'yellow',day:-2,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月最后1天',desc:'每月最后1天完成。遇周六推迟至周日。'},
 {id:'alarm_test',name:'测试报警器并登记',type:'monthly_fixed',severity:'red',day:15,postponeSat:'fri',reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月15号',desc:'每月15号完成。遇周六提前至周五。'},
@@ -419,7 +439,7 @@ class App {
           if(def.linkedFrom!==undefined)t.linkedFrom=def.linkedFrom;
         }
         if(t.type==='旬'||t.type==='monthly_range'||t.type==='monthly_multi')t.multiCompletion=true;
-        if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[];t.weekStart=1}if(t.id==='call_9999'){t.lastNDays=4;if(!t.completions)t.completions={}}
+        if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[];t.weekStart=1}if(t.id==='call_9999'){t.lastNDays=4;if(!t.completions)t.completions={};t.desc=''}
         if(t.type==='rolling'&&!t.completionHistory)t.completionHistory=[];
         // 修复: rolling任务 lastCompleted 为空时从 completionHistory 恢复
         if(t.type==='rolling'&&!t.lastCompleted&&t.completionHistory&&t.completionHistory.length){
