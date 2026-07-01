@@ -1047,24 +1047,32 @@ class App {
     if(task.type==='monthly_multi'){const today=new Date(),m=today.getMonth(),y=today.getFullYear();let cycleMonth,cycleYear;if(today.getDate()>=25){cycleMonth=m;cycleYear=y}else{cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}html+=`<div class="modal-section"><div class="modal-section-title">各节点状态</div>`;task.days.forEach(day=>{let target;if(day===1)target=new Date(cycleYear,cycleMonth+1,1);else target=new Date(cycleYear,cycleMonth,day);const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(target)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`});html+=`</div>`}
     if(task.type==='旬'){const m=new Date().getMonth(),y=new Date().getFullYear();if(!task.completions)task.completions={};html+=`<div class="modal-section"><div class="modal-section-title">本月各旬状态</div>`;const xunLabels=['第1旬（1-10号）','第2旬（11-20号）','第3旬（21-月末）'];xunLabels.forEach((label,i)=>{const key=`${y}-${m}-${i+1}`;const raw=task.completions[key];const arr=Array.isArray(raw)?raw:raw?[raw]:[];const display=arr.length?arr.map(r=>r.date||'已完成').join(' + '):null;html+=`<div class="modal-info-row"><span class="label">${label}</span><span class="value" style="color:${arr.length?'var(--green)':'var(--text3)'}">${arr.length?'✅ '+display:'⬜ 待完成'}</span></div>`});html+=`</div>`}
     if(task.type==='weekly'&&task.multiCompletion&&task.weekStart!==undefined){
-    const m=new Date().getMonth(),y=new Date().getFullYear();
-    const mxt=task.monthlyTarget||4;
-    const firstDay=new Date(y,m,1);
-    let cursor=new Date(firstDay);
-    const cdow=cursor.getDay();
-    cursor.setDate(cursor.getDate()-(cdow===0?6:cdow-1));
-    const weeks=[];
-    while(weeks.length<mxt){
-      const mon=new Date(cursor);const sun=new Date(cursor);sun.setDate(cursor.getDate()+6);
-      const label=mon.getMonth()===sun.getMonth()?mon.getMonth()+1+'/'+mon.getDate()+'-'+sun.getDate()+'号':mon.getMonth()+1+'/'+mon.getDate()+'-'+(sun.getMonth()+1)+'/'+sun.getDate();
-      weeks.push({mon,sun,label});cursor.setDate(cursor.getDate()+7);
-    }
-    html+=`<div class="modal-section"><div class="modal-section-title">本月各周状态（${task.completionHistory?task.completionHistory.filter(h=>{const p=chDate(h).split('-');return parseInt(p[0])===y&&parseInt(p[1])===m}).length:0}/${mxt}）</div>`;
-    weeks.forEach((w,i)=>{
-      const done=task.completionHistory&&task.completionHistory.some(h=>{const p=chDate(h).split('-');if(p.length<3)return false;const d=new Date(parseInt(p[0]),parseInt(p[1]),parseInt(p[2]));return d>=w.mon&&d<=w.sun});
-      html+=`<div class="modal-info-row"><span class="label">第${i+1}周（${w.label}）</span><span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ 已完成':'⬜ 待完成'}</span></div>`;
-    });
-    html+=`</div>`;
+      const m=new Date().getMonth(),y=new Date().getFullYear();
+      const mxt=task.monthlyTarget||4;
+      const firstDay=new Date(y,m,1),lastDay=new Date(y,m+1,0);
+      const weeks=[];
+      // Week 1: from 1st of month to following Sunday
+      let s=new Date(firstDay),e=new Date(firstDay);
+      const dw=e.getDay();e.setDate(e.getDate()+(dw===0?0:7-dw));
+      if(e>lastDay)e=new Date(lastDay);
+      weeks.push({start:s,end:e});
+      // Subsequent weeks: Mon-Sun
+      while(true){
+        s=new Date(e);s.setDate(s.getDate()+1);
+        if(s>lastDay)break;
+        e=new Date(s);const sw=e.getDay();
+        e.setDate(e.getDate()+(sw===0?0:7-sw));
+        if(e>lastDay)e=new Date(lastDay);
+        weeks.push({start:s,end:e});
+      }
+      const cnt=task.completionHistory?task.completionHistory.filter(h=>{const p=chDate(h).split('-');return parseInt(p[0])===y&&parseInt(p[1])===m}).length:0;
+      html+=`<div class="modal-section"><div class="modal-section-title">本月各周状态（${cnt}/${mxt}）</div>`;
+      weeks.forEach((w,i)=>{
+        const done=task.completionHistory&&task.completionHistory.some(h=>{const p=chDate(h).split('-');if(p.length<3)return false;const d=new Date(parseInt(p[0]),parseInt(p[1]),parseInt(p[2]));return d>=w.start&&d<=w.end});
+        const label=w.start.getMonth()+1+'/'+w.start.getDate()+'-'+w.end.getDate()+'号';
+        html+=`<div class="modal-info-row"><span class="label">第${i+1}周（${label}）</span><span class="value" style="color:${done?'var(--green)':'var(--text3)'}">${done?'✅ 已完成':'⬜ 待完成'}</span></div>`;
+      });
+      html+=`</div>`;
     }else if(task.type==='weekly'&&task.multiCompletion){
     const m=new Date().getMonth(),y=new Date().getFullYear();
       const mxt=task.monthlyTarget||4;
