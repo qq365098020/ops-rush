@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260701-2258">
+<meta name="version" content="20260701-2307">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -380,7 +380,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 })();
 const DEFAULT_TASKS = [
   {id:'anti_money_laundering',name:'反洗钱检查',type:'rolling',severity:'red',intervalDays:2,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每2天',desc:'从上次完成日起计算，满2天未完成则标红预警。周六关门日计入天数。'},
-  {id:'atm_cleaning',name:'ATM清机',type:'rolling',severity:'red',intervalDays:4,lastCompleted:null,reviews:[],note:'',manualResetDates:[],typeLabel:'滚动 · 每4天',desc:'至少每4天清机一次。完成"每旬查库"会自动重置本任务。行长查库清机请点下方重置按钮。',linkedFrom:'inventory_check'},
+  {id:'atm_cleaning',name:'ATM清机',type:'rolling',severity:'red',intervalDays:4,lastCompleted:null,reviews:[],note:'',manualResetDates:[],typeLabel:'滚动 · 每4天',desc:'',linkedFrom:'inventory_check'},
   {id:'atm_register',name:'ATM机登记本',type:'rolling',severity:'yellow',intervalDays:4,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每4天',desc:'至少每4天登记一次。周六关门日计入天数。'},
   {id:'inventory_check',name:'每旬查库',type:'旬',severity:'red',multiCompletion:true,lastCompleted:null,reviews:[],note:'',completions:{},typeLabel:'月度 · 每旬',desc:'每月3次：1-10号、11-20号、21-31号各完成一次。每旬开始即持续提醒。周六关门日截止日提前至周五。完成本任务会自动重置"ATM清机"计时。',linkTo:'atm_cleaning'},
   {id:'security_study',name:'安保本学习记录',type:'monthly_range',severity:'yellow',multiCompletion:true,lastCompleted:null,reviews:[],note:'',monthParts:[{label:'第1篇',before:15},{label:'第2篇',after:25}],typeLabel:'月度 · 2篇/月',desc:'第1篇：15号之前完成。第2篇：25号之后完成（抄中心社内容）。'},
@@ -439,7 +439,7 @@ class App {
           if(def.linkedFrom!==undefined)t.linkedFrom=def.linkedFrom;
         }
         if(t.type==='旬'||t.type==='monthly_range'||t.type==='monthly_multi')t.multiCompletion=true;
-        if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[];t.weekStart=1}if(t.id==='call_9999'){t.lastNDays=4;if(!t.completions)t.completions={};t.desc=''}
+        if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[];t.weekStart=1}if(t.id==='call_9999'){t.lastNDays=4;if(!t.completions)t.completions={};t.desc=''}if(t.id==='atm_cleaning'){t.desc=''}
         if(t.type==='rolling'&&!t.completionHistory)t.completionHistory=[];
         // 修复: rolling任务 lastCompleted 为空时从 completionHistory 恢复
         if(t.type==='rolling'&&!t.lastCompleted&&t.completionHistory&&t.completionHistory.length){
@@ -845,12 +845,6 @@ class App {
 
 
 
-  addReview(taskId,note){
-    const task=this.tasks.find(t=>t.id===taskId);if(!task||!note.trim())return;
-    if(!task.reviews)task.reviews=[];task.reviews.unshift({date:new Date().toISOString(),note:note.trim()});
-    this.save();this.openDetail(taskId);this.toast('📝 备注已保存');
-  }
-
   // ===== RENDER =====
   render(){this.renderDashboard();this.renderTasks()}
 
@@ -1115,7 +1109,7 @@ class App {
     // Status section removed - mini calendar shows completion history instead
     if(task.desc)html+=`<div class="modal-section"><div class="modal-section-title">说明</div><div class="modal-note">${task.desc}</div></div>`;
     if(task.hasPersistentNote&&task.note)html+=`<div class="modal-section"><div class="modal-section-title">📋 操作备注（常驻）</div><div class="modal-note">${task.note}</div></div>`;
-    if(task.id==='atm_cleaning')html+=`<div class="modal-section"><button class="modal-btn btn-reset" onclick="app.manualReset('${task.id}')">🔄 重置计时（行长查库清机）</button>${task.manualResetDates&&task.manualResetDates.length?`<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px">上次手动重置：${fmtDate(new Date(task.manualResetDates[task.manualResetDates.length-1]))}</div>`:''}</div>`;
+
     if(task.type==='monthly_multi'){const today=new Date(),m=today.getMonth(),y=today.getFullYear();if(task.lastNDays){const monthEnd=new Date(y,m+1,0);const lastDay=monthEnd.getDate();const startDay=lastDay-task.lastNDays+1;html+=`<div class="modal-section"><div class="modal-section-title">各节点状态（倒数${task.lastNDays}天）</div>`;for(let d=startDay;d<=lastDay;d++){const dt=new Date(y,m,d);const key=`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(dt)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`}html+=`</div>`}else{let cycleMonth,cycleYear;if(today.getDate()>=25){cycleMonth=m;cycleYear=y}else{cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}html+=`<div class="modal-section"><div class="modal-section-title">各节点状态</div>`;task.days.forEach(day=>{let target;if(day===1)target=new Date(cycleYear,cycleMonth+1,1);else target=new Date(cycleYear,cycleMonth,day);const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(target)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`});html+=`</div>`}}
     if(task.type==='旬'){const m=new Date().getMonth(),y=new Date().getFullYear();if(!task.completions)task.completions={};html+=`<div class="modal-section"><div class="modal-section-title">本月各旬状态</div>`;const xunLabels=['第1旬（1-10号）','第2旬（11-20号）','第3旬（21-月末）'];xunLabels.forEach((label,i)=>{const key=`${y}-${m}-${i+1}`;const raw=task.completions[key];const arr=Array.isArray(raw)?raw:raw?[raw]:[];const display=arr.length?arr.map(r=>r.date||'已完成').join(' + '):null;html+=`<div class="modal-info-row"><span class="label">${label}</span><span class="value" style="color:${arr.length?'var(--green)':'var(--text3)'}">${arr.length?'✅ '+display:'⬜ 待完成'}</span></div>`});html+=`</div>`}
     if(task.type==='weekly'&&task.multiCompletion&&task.weekStart!==undefined){
@@ -1185,9 +1179,7 @@ class App {
     if(!DEFAULT_TASKS.find(d=>d.id===task.id))html+=`<button class="modal-btn btn-delete" onclick="app.deleteTask('${task.id}')">🗑️ 删除任务</button>`;
     html+=`<button class="modal-btn btn-close" onclick="app.closeDetail()">关闭</button></div>`;
 
-    // Review input (bottom of detail)
-    html+=`<div class="modal-section"><div class="modal-section-title">📝 复盘备注</div><div style="display:flex;gap:8px"><input class="form-input" id="reviewInput" placeholder="一句话备注..." style="flex:1"><button class="modal-btn btn-complete" style="width:auto;padding:12px 20px;margin:0" onclick="app.addReview('${task.id}',document.getElementById('reviewInput').value)">保存</button></div></div>`;
-    if(task.reviews&&task.reviews.length)html+=`<div class="modal-section"><div class="modal-section-title">历史备注</div>${task.reviews.slice(0,10).map(r=>`<div class="review-item"><div class="review-date">${fmtDate(new Date(r.date))}</div><div class="review-note">${r.note}</div></div>`).join('')}</div>`;
+
 
     // Undo button (rarely used, at the very bottom)
     html+=`<div class="modal-section"><button class="modal-btn btn-undo" style="opacity:.6;font-size:13px" onclick="app.undoComplete('${task.id}')">↩️ 撤销完成</button></div>`;
