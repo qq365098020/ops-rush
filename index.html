@@ -546,7 +546,7 @@ class App {
           if(lc<lastTarget)return{status:'overdue',label:`上周未完成`,dueDate:target,daysLeft:-(7-daysLeft),overdue:true};
         }else{return{status:'overdue',label:`上周未完成`,dueDate:target,daysLeft:-(7-daysLeft),overdue:true}}
       }
-      if(task.multiCompletion){const cnt=countMonthly();const mxt=task.monthlyTarget||4;return{status:'ok',label:`还有${daysLeft}天 · 已完成${cnt}/${mxt}`,dueDate:target,daysLeft,overdue:false};}
+      if(task.multiCompletion){const cnt=countMonthly();const mxt=task.monthlyTarget||4;if(cnt===0)return{status:'pending',label:`本月待开始 · 0/${mxt}`,dueDate:target,daysLeft,overdue:false};return{status:'ok',label:`还有${daysLeft}天 · 已完成${cnt}/${mxt}`,dueDate:target,daysLeft,overdue:false};}
       return{status:'ok',label:`还有${daysLeft}天`,dueDate:target,daysLeft,overdue:false};
     }
     return{status:'unknown',label:'--',dueDate:null,daysLeft:null,overdue:false};
