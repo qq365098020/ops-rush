@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260702-0002">
+<meta name="version" content="20260702-0805">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -309,7 +309,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
     </div>
     <div class="setting-group-title">关于</div>
     <div class="setting-item">
-      <div><div class="setting-label">运营RUSH v2.5</div></div>
+      <div><div class="setting-label">版本: <span id="versionDisplay">v2.5</span></div></div>
     </div>
   </div>
 
@@ -441,6 +441,8 @@ class App {
   updateDate(){
     const d=TODAY();const wk=['日','一','二','三','四','五','六'];
     document.getElementById('dateDisplay').textContent=`${d.getMonth()+1}月${d.getDate()}日 周${wk[d.getDay()]}`;
+    const v=document.querySelector('meta[name="version"]')?.content;
+    if(v)document.getElementById('versionDisplay').textContent='v'+v;
   }
 
   setupNav(){
