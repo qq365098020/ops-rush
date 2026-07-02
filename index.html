@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260702-1634">
+<meta name="version" content="20260702-1737">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -591,7 +591,10 @@ class App {
     if(isSaturday(xunEndTarget))xunEndTarget=postponeToFriday(xunEndTarget);
     const xunDaysLeft=daysBetween(today,xunEndTarget);
     if(xunDaysLeft<0)return{status:'overdue',label:`本旬已逾期 ${monthlyCount}/3`,dueDate:xunEndTarget,daysLeft:xunDaysLeft,overdue:true,isXun:true};
-    return{status:'pending',label:`本旬待完成 ${monthlyCount}/3`,dueDate:xunEndTarget,daysLeft:xunDaysLeft,overdue:false,isXun:true};
+    // 计算剩余工作日（排除周六）
+    let rd=0;const cd=new Date(today);cd.setDate(cd.getDate()+1);
+    while(cd<=xunEndTarget){if(cd.getDay()!==6)rd++;cd.setDate(cd.getDate()+1)}
+    return{status:'pending',label:`剩余${rd}天 ${monthlyCount}/3`,dueDate:xunEndTarget,daysLeft:xunDaysLeft,overdue:false,isXun:true};
   }
 
   getWeekCycleStatus(task,today){
@@ -609,7 +612,10 @@ class App {
     const dl=daysBetween(today,sunday);
     if(dl<0)return{status:'overdue',label:`上周未完成 · ${cnt}/${mxt}`,dueDate:sunday,daysLeft:dl,overdue:true};
     if(dl===0)return{status:'today',label:`今天截止 · ${cnt}/${mxt}`,dueDate:sunday,daysLeft:0,overdue:false};
-    return{status:'pending',label:`${fmtDateShort(sunday)}前完成 · ${cnt}/${mxt}`,dueDate:sunday,daysLeft:dl,overdue:false};
+    // 计算剩余工作日（排除周六）
+    let rd=0;const cd=new Date(today);cd.setDate(cd.getDate()+1);
+    while(cd<=sunday){if(cd.getDay()!==6)rd++;cd.setDate(cd.getDate()+1)}
+    return{status:'pending',label:`剩余${rd}天 · ${cnt}/${mxt}`,dueDate:sunday,daysLeft:dl,overdue:false};
   }
 
   getMultiStatus(task,today){
