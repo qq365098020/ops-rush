@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260702-1616">
+<meta name="version" content="20260702-1623">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -393,12 +393,14 @@ function resolveDay(taskDay,year,month){if(taskDay===-2)return new Date(year,mon
 // ===== APP CLASS =====
 class App {
   constructor(){
+    try{
     this.tasks=[];this.currentPage='pageDashboard';this.activeTab='overdue';
     this._calMonth=0;this._calYear=0;this._calSelected=null;this._calTaskId=null;this._miniCalMonth=new Date().getMonth();this._miniCalYear=new Date().getFullYear();
     this.load();this.setupNav();this.updateDate();
-    // 首次渲染
-    try{this.renderDashboard()}catch(e){document.getElementById('tabBar').textContent='ERR:'+e.message}
+    // 首次渲染：用switchPage强制页面可见+内容填充
+    this.switchPage('pageDashboard');
     setInterval(()=>this.render(),60000);
+    }catch(e){document.getElementById('tabBar').textContent='ERR:'+e.message}
   }
 
   load(){
