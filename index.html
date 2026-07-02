@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260702-0854">
+<meta name="version" content="20260702-0935">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -357,18 +357,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
   var cv=localStorage.getItem('_app_version');
   if(v&&cv&&v!==cv){localStorage.setItem('_app_version',v);location.reload();return;}
   if(v)localStorage.setItem('_app_version',v);
-  // Auto-refresh: check version.json when returning, and every 30s
-  function checkVersion(){
-    fetch('/ops-rush/version.json?_='+Date.now(),{cache:'no-store'})
-      .then(function(r){return r.json()})
-      .then(function(d){
-        var ov=localStorage.getItem('_app_version');
-        if(ov&&d.version&&d.version!==ov){localStorage.setItem('_app_version',d.version);location.reload()}
-      })
-      .catch(function(){});
-  }
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)checkVersion()});
-  setInterval(checkVersion,30000);
 })();
 const DEFAULT_TASKS = [
   {id:'anti_money_laundering',name:'反洗钱检查',type:'rolling',severity:'red',intervalDays:2,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每2天',desc:'从上次完成日起计算，满2天未完成则标红预警。周六关门日计入天数。'},
@@ -452,6 +440,8 @@ class App {
   updateDate(){
     const d=TODAY();const wk=['日','一','二','三','四','五','六'];
     document.getElementById('dateDisplay').textContent=`${d.getMonth()+1}月${d.getDate()}日 周${wk[d.getDay()]}`;
+    const v=document.querySelector('meta[name="version"]')?.content;
+    if(v)document.getElementById('versionDisplay').textContent='v'+v;
   }
 
   setupNav(){
@@ -516,6 +506,15 @@ class App {
           return{status:'done',label:`已完成 · 下次${fmtDateShort(nextTarget)}`,dueDate:nextTarget,daysLeft:daysBetween(today,nextTarget),overdue:false};
         }
       }
+      // Step 2.5: 检查上个月是否漏做了（个人安保学习本这类跨月任务）
+      const lastM=m===0?11:m-1;const lastY=m===0?y-1:y;
+      let lastTarget=new Date(lastY,lastM,resolveDay(task.day,lastY,lastM));
+      if(task.postponeSat===true)lastTarget=postponeIfSaturday(lastTarget);else if(task.postponeSat==='fri')lastTarget=postponeToFriday(lastTarget);
+      const lc=task.lastCompleted?new Date(task.lastCompleted):null;if(lc)lc.setHours(0,0,0,0);
+      if(lastTarget<today&&target>=today&&(!lc||lc<lastTarget)){
+        const daysLeft=daysBetween(today,target);
+        return{status:'missed',label:`上月未完成 · 还有${daysLeft}天`,dueDate:target,daysLeft,overdue:true};
+      }
       // Step 3: 未完成 → 基于当月目标判断逾期/今天/即将
       const daysLeft=daysBetween(today,target);
       if(task.remindFrom&&today.getDate()<task.remindFrom&&daysLeft>0)return{status:'waiting',label:`${task.remindFrom}号起提醒`,dueDate:target,daysLeft,overdue:false};
@@ -568,6 +567,8 @@ class App {
   getXunStatus(task,today){
     const d=today.getDate();const y=today.getFullYear(),m=today.getMonth();
     if(!task.completions)task.completions={};
+    // Count monthly completions (3 periods per month)
+    const monthlyCount=[1,2,3].filter(i=>{const k=`${y}-${m}-${i}`;const v=task.completions[k];return v&&(Array.isArray(v)?v.length>0:true)}).length;
     // Determine current旬 index: 1=1-10, 2=11-20, 3=21-end
     let xunIdx,xunEnd;
     if(d<=10){xunIdx=1;xunEnd=10}
@@ -581,13 +582,13 @@ class App {
       let nextXunStart,nextXunIdx;
       if(xunIdx<3){nextXunIdx=xunIdx+1;nextXunStart=new Date(y,m,(xunIdx)*10+1)}
       else{nextXunIdx=1;nextXunStart=new Date(y,m+1,1)}
-      return{status:'done',label:'本旬已完成',dueDate:nextXunStart,daysLeft:daysBetween(today,nextXunStart),overdue:false};
+      return{status:'done',label:`已完成 ${monthlyCount}/3`,dueDate:nextXunStart,daysLeft:daysBetween(today,nextXunStart),overdue:false};
     }
     let xunEndTarget=new Date(y,m,xunEnd);
     if(isSaturday(xunEndTarget))xunEndTarget=postponeToFriday(xunEndTarget);
     const xunDaysLeft=daysBetween(today,xunEndTarget);
-    if(xunDaysLeft<0)return{status:'overdue',label:'本旬已逾期',dueDate:xunEndTarget,daysLeft:xunDaysLeft,overdue:true,isXun:true};
-    return{status:'pending',label:'本旬待完成',dueDate:xunEndTarget,daysLeft:xunDaysLeft,overdue:false,isXun:true};
+    if(xunDaysLeft<0)return{status:'overdue',label:`本旬已逾期 ${monthlyCount}/3`,dueDate:xunEndTarget,daysLeft:xunDaysLeft,overdue:true,isXun:true};
+    return{status:'pending',label:`本旬待完成 ${monthlyCount}/3`,dueDate:xunEndTarget,daysLeft:xunDaysLeft,overdue:false,isXun:true};
   }
 
   getWeekCycleStatus(task,today){
@@ -895,6 +896,7 @@ class App {
       else if(s.status==='done'&&(!task.multiCompletion||this.isMonthFullyComplete(task)))done.push(task);
       else if(s.status==='done'&&task.multiCompletion&&!this.isMonthFullyComplete(task))upcoming.push(task);
       else if(s.status==='pending')overdue.push(task);
+      else if(s.status==='missed')upcoming.push(task);
       else if(s.status==='soon'||(s.daysLeft!==null&&s.daysLeft<=3))upcoming.push(task);
       else if(s.status==='ok')upcoming.push(task);
     });
