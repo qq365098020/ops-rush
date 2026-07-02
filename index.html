@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260702-1115">
+<meta name="version" content="20260702-1123">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -395,8 +395,9 @@ class App {
   constructor(){
     this.tasks=[];this.currentPage='pageDashboard';this.activeTab='overdue';
     this._calMonth=0;this._calYear=0;this._calSelected=null;this._calTaskId=null;this._miniCalMonth=new Date().getMonth();this._miniCalYear=new Date().getFullYear();
-    this.load();this.setupNav();this.updateDate();this.render();
-    this.switchPage('pageDashboard');
+    this.load();this.setupNav();this.updateDate();
+    // 进入默认页面 - 初次加载不经过switchPage避免样式闪烁
+    this.renderDashboard();
     setInterval(()=>this.render(),60000);
   }
 
