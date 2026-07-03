@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260703-0828">
+<meta name="version" content="20260703-0843">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -915,7 +915,12 @@ class App {
       else if(s.status==='ok')upcoming.push(task);
     });
     const sevOrder={red:0,yellow:1,green:2};
-    overdue.sort((a,b)=>(sevOrder[a.severity]||3)-(sevOrder[b.severity]||3));
+    // 待处理：逾期在前，再按剩余时间短→长
+    overdue.sort((a,b)=>{
+      if(a._status.overdue!==b._status.overdue)return a._status.overdue?-1:1;
+      return(a._status.daysLeft||999)-(b._status.daysLeft||999)
+    });
+    // 进行中：按剩余时间短→长
     upcoming.sort((a,b)=>{if(a._status.daysLeft===null)return 1;if(b._status.daysLeft===null)return -1;return a._status.daysLeft-b._status.daysLeft});
     const upcomingActive=upcoming.filter(t=>t._status.status!=='done'||(t.multiCompletion&&!this.isMonthFullyComplete(t)));
     const doneTasks=[...upcoming.filter(t=>t._status.status==='done'&&(!t.multiCompletion||this.isMonthFullyComplete(t))),...done];
