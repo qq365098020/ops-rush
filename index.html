@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260703-1036">
+<meta name="version" content="20260704-1919">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -378,7 +378,7 @@ const DEFAULT_TASKS = [
   {id:'personal_security',name:'个人安保学习本',type:'monthly_fixed',severity:'yellow',day:-2,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月最后1天',desc:'每月最后1天完成。遇周六推迟至周日。'},
 {id:'alarm_test',name:'测试报警器并登记',type:'monthly_fixed',severity:'red',day:15,postponeSat:'fri',reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月15号',desc:'每月15号完成。遇周六提前至周五。'},
   {id:'wall_safety',name:'墙上安全检查',type:'monthly_fixed',severity:'yellow',day:15,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月15号',desc:'每月15号完成。遇周六推迟至周日。'},
-  {id:'computer_log',name:'计算机操作日志',type:'weekly',severity:'yellow',weekday:5,reviews:[],note:'',lastCompleted:null,typeLabel:'每周 · 周五',desc:'每周五提醒，当天未完成则标黄预警。'},
+  {id:'computer_log',name:'计算机操作日志',type:'weekly',severity:'yellow',weekday:5,multiCompletion:true,monthlyTarget:4,reviews:[],note:'',lastCompleted:null,completionHistory:[],typeLabel:'每周 · 周五',desc:'每周五提醒，当天未完成则标黄预警。每月共需完成4次。'},
   {id:'safety_check',name:'安全检查',type:'weekly',severity:'yellow',weekday:0,multiCompletion:true,monthlyTarget:4,weekStart:1,reviews:[],note:'',lastCompleted:null,typeLabel:'每周 · 周一~周日 · 4次/月',desc:'每周一至周日期间完成1次，本月共需4次。检查项目：应急灯、灭火器、报警器、电话、十分钟监控。'}
 ];
 
@@ -426,7 +426,7 @@ class App {
           if(def.linkedFrom!==undefined)t.linkedFrom=def.linkedFrom;
         }
         if(t.type==='旬'||t.type==='monthly_range'||t.type==='monthly_multi')t.multiCompletion=true;
-        if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[];t.weekStart=1}if(t.id==='call_9999'){t.lastNDays=4;if(!t.completions)t.completions={};t.desc=''}if(t.id==='atm_cleaning'){t.desc=''}
+        if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[];t.weekStart=1}if(t.id==='call_9999'){t.lastNDays=4;if(!t.completions)t.completions={};t.desc=''}if(t.id==='atm_cleaning'){t.desc=''}if(t.id==='computer_log'){t.multiCompletion=true;t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[]}
         if(t.type==='rolling'&&!t.completionHistory)t.completionHistory=[];
         // 修复: rolling任务 lastCompleted 为空时从 completionHistory 恢复
         if(t.type==='rolling'&&!t.lastCompleted&&t.completionHistory&&t.completionHistory.length){
