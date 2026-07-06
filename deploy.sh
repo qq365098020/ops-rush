@@ -12,6 +12,8 @@ TIMESTAMP=$(TZ=$TZ date +"%Y%m%d-%H%M")
 
 # 2. 更新manifest.json版本号
 sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$TIMESTAMP\"/" "$REPO/manifest.json"
+# 更新manifest.json的start_url带版本号
+sed -i "s|\"start_url\": \"[^\"]*\"|\"start_url\": \"./index.html?v=$TIMESTAMP\"|" "$REPO/manifest.json"
 
 # 3. 更新HTML中的meta version标签
 sed -i "s|<meta name=\"version\" content=\"[^\"]*\">|<meta name=\"version\" content=\"$TIMESTAMP\">|" "$REPO/index.html"
