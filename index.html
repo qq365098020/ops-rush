@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260706-1037">
+<meta name="version" content="20260706-1043">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -361,7 +361,14 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
   var v=document.querySelector('meta[name="version"]')?.content;
   var cv=localStorage.getItem('_app_version');
   if(v&&cv&&v!==cv){localStorage.setItem('_app_version',v);location.reload();return;}
-  if(v)localStorage.setItem('_app_version',v);
+  if(v&&!cv)localStorage.setItem('_app_version',v);
+  // PWA缓存穿透：后台拉取最新版本号，不一致则刷新
+  if(cv){
+    fetch('manifest.json?_='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.json()})
+      .then(function(d){if(d.version&&d.version!==cv){localStorage.setItem('_app_version',d.version);location.reload()}})
+      .catch(function(){});
+  }
 })();
 const DEFAULT_TASKS = [
   {id:'anti_money_laundering',name:'反洗钱检查',type:'rolling',severity:'red',intervalDays:2,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每2天',desc:'从上次完成日起计算，满2天未完成则标红预警。周六关门日计入天数。'},
