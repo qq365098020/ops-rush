@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260706-1106">
+<meta name="version" content="20260706-1110">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -315,6 +315,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
     <div class="setting-group-title">关于</div>
     <div class="setting-item">
       <div><div class="setting-label">版本: <span id="versionDisplay">v2.5</span></div></div>
+    </div>
+    <div class="setting-item" onclick="app.checkUpdate()">
+      <div><div class="setting-label">🔄 检查更新</div><div class="setting-desc">拉取最新版本并刷新</div></div>
+      <div class="setting-arrow">›</div>
     </div>
   </div>
 
@@ -1344,6 +1348,19 @@ class App {
   importData(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(e)=>{try{const data=JSON.parse(e.target.result);if(data.tasks&&Array.isArray(data.tasks)){this.showConfirm('导入数据','导入将覆盖当前所有数据，确定继续？',()=>{this.tasks=data.tasks;this.tasks.forEach(t=>{const def=DEFAULT_TASKS.find(d=>d.id===t.id);if(def){t.name=def.name;t.type=def.type;t.severity=def.severity;t.intervalDays=def.intervalDays;t.typeLabel=def.typeLabel;t.desc=def.desc;if(def.day!==undefined)t.day=def.day;if(def.weekday!==undefined)t.weekday=def.weekday;if(def.postponeSat!==undefined)t.postponeSat=def.postponeSat;if(def.linkTo!==undefined)t.linkTo=def.linkTo;if(def.linkedFrom!==undefined)t.linkedFrom=def.linkedFrom;if(def.monthParts)t.monthParts=JSON.parse(JSON.stringify(def.monthParts));if(def.multiCompletion!==undefined)t.multiCompletion=def.multiCompletion}});this.save();this.render();this.toast('📥 数据已导入')})}else this.toast('⚠️ 无效的数据文件')}catch(err){this.toast('⚠️ 文件解析失败')}};reader.readAsText(file);event.target.value=''}
 
   confirmReset(){this.showConfirm('重置所有数据','将清除所有任务数据和记录，不可恢复！',()=>{localStorage.removeItem('opsrush_data');this.tasks=JSON.parse(JSON.stringify(DEFAULT_TASKS));this.save();this.render();this.toast('🗑️ 数据已重置')})}
+  checkUpdate(){
+    this.toast('⏳ 正在检查更新...');
+    fetch('manifest.json?_='+Date.now(),{cache:'no-store'})
+      .then(r=>r.json())
+      .then(d=>{
+        if(!d.version)return;
+        var cv=localStorage.getItem('_app_version');
+        if(d.version===cv){this.toast('✅ 已是最新版本');return}
+        localStorage.setItem('_app_version',d.version);
+        location.reload();
+      })
+      .catch(()=>{this.toast('⚠️ 检查失败，请检查网络')});
+  }
 
   toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(this._toastTimer);this._toastTimer=setTimeout(()=>el.classList.remove('show'),2200)}
 
