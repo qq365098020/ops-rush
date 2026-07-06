@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260706-1044">
+<meta name="version" content="20260706-1053">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -664,8 +664,10 @@ class App {
     }
     // Original cycle mode
     let cycleMonth,cycleYear;
-    if(today.getDate()>=25){cycleMonth=m;cycleYear=y}
-    else{cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}
+    const hasCycle=task.days&&task.days.some(d=>d>=25);
+    if(hasCycle&&today.getDate()>=25){cycleMonth=m;cycleYear=y}
+    else if(hasCycle){cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}
+    else{cycleMonth=m;cycleYear=y}
     const targets=[];
     for(const day of task.days){
       let target;
@@ -790,8 +792,10 @@ class App {
       }else{
         const m=targetDate.getMonth(),y=targetDate.getFullYear();
         let cycleMonth,cycleYear;
-        if(targetDate.getDate()>=25){cycleMonth=m;cycleYear=y}
-        else{cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}
+        const hasCycle=task.days&&task.days.some(d=>d>=25);
+        if(hasCycle&&targetDate.getDate()>=25){cycleMonth=m;cycleYear=y}
+        else if(hasCycle){cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}
+        else{cycleMonth=m;cycleYear=y}
         const cycleTargets=[];
         for(const day of task.days){
           let d;if(day===1)d=new Date(cycleYear,cycleMonth+1,1);else d=new Date(cycleYear,cycleMonth,day);
