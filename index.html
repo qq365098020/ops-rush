@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260709-0811">
+<meta name="version" content="20260709-0824">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -107,8 +107,14 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 @keyframes pulse-red{0%,100%{box-shadow:0 2px 16px rgba(255,59,48,.1)}50%{box-shadow:0 4px 24px rgba(255,59,48,.2)}}
 
 .card-body{flex:1;min-width:0}
-.task-card .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px}
+.task-card .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
 .task-card .card-name{font-size:14px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.task-card .card-mid{min-height:10px;margin-bottom:4px}
+.task-card .card-bot{text-align:right}
+.task-card .prog-bar{display:flex;gap:4px}
+.task-card .prog-dot{width:6px;height:6px;border-radius:2px;display:inline-block}
+.task-card .prog-on{background:var(--green);box-shadow:0 0 4px var(--green)}
+.task-card .prog-off{background:rgba(255,255,255,.12)}
 .task-card .card-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;margin-left:6px;flex-shrink:0}
 .severity-red .card-tag{background:var(--red-bg);color:var(--red)}
 .severity-yellow .card-tag{background:var(--yellow-bg);color:var(--yellow)}
@@ -389,7 +395,6 @@ const DEFAULT_TASKS = [
   {id:'personal_security',name:'个人安保学习本',type:'monthly_fixed',severity:'yellow',day:-2,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月最后1天',desc:'每月最后1天完成。遇周六推迟至周日。'},
 {id:'alarm_test',name:'测试报警器并登记',type:'monthly_fixed',severity:'red',day:15,postponeSat:'fri',reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月15号',desc:'每月15号完成。遇周六提前至周五。'},
   {id:'wall_safety',name:'墙上安全检查',type:'monthly_fixed',severity:'yellow',day:15,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月15号',desc:'每月15号完成。遇周六推迟至周日。'},
-  {id:'cash_zero',name:'现金登记为0',type:'rolling',severity:'green',intervalDays:1,postponeSat:true,lastCompleted:null,reviews:[],note:'',completionHistory:[],typeLabel:'每日 · 1次（跳过周六）',desc:'每天完成一次现金登记归零。周六关门日跳过。'},
   {id:'computer_log',name:'计算机操作日志',type:'monthly_multi',severity:'yellow',days:[2,17],multiCompletion:true,reviews:[],note:'',lastCompleted:null,completions:{},typeLabel:'月度 · 2号和17号',desc:'每月2号和17号各写一次。'},
   {id:'safety_check',name:'安全检查',type:'weekly',severity:'yellow',weekday:0,multiCompletion:true,monthlyTarget:4,weekStart:1,reviews:[],note:'',lastCompleted:null,typeLabel:'每周 · 周一~周日 · 4次/月',desc:'每周一至周日期间完成1次，本月共需4次。检查项目：应急灯、灭火器、报警器、电话、十分钟监控。'}
 ];
@@ -979,10 +984,29 @@ class App {
     const sevClass=`severity-${task.severity}`;const overdue=s.overdue;
     const doneClass=isDone&&s.status==='done'?'done-card':'';
     let cc='ok-text';if(s.overdue)cc='overdue-text';else if(s.daysLeft!==null&&s.daysLeft<=3)cc='soon-text';
+    // 倒计时格式化:逾期-9/剩余+2/今天0
+    let cdText='';
+    if(s.daysLeft!==null&&s.daysLeft<0)cdText=String(s.daysLeft);
+    else if(s.daysLeft!==null&&s.daysLeft===0)cdText='0';
+    else if(s.daysLeft!==null&&s.daysLeft>0)cdText='+'+s.daysLeft;
+    // 进度格子
+    let dots='';
+    const now=new Date();const yy=now.getFullYear(),mm=now.getMonth();
+    if(task.type==='旬'){
+      const dc=[1,2,3].filter(i=>{const k=`${yy}-${mm}-${i}`;const v=task.completions?.[k];return v&&(Array.isArray(v)?v.length>0:true)}).length;
+      for(let i=0;i<3;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>'
+    }else if(task.type==='monthly_multi'&&task.days&&task.days.length){
+      const dc=task.days.filter(d=>{let t;if(d===1)t=new Date(yy,mm+1,1);else t=new Date(yy,mm,d);const k=`${t.getFullYear()}-${t.getMonth()}-${t.getDate()}`;return task.completions?.[k]}).length;
+      for(let i=0;i<task.days.length;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>'
+    }else if(task.multiCompletion&&(task.type==='weekly'||task.monthlyTarget)){
+      const mxt=task.monthlyTarget||4;const dc=task.completionHistory?task.completionHistory.filter(h=>{const p=chDate(h).split('-');return parseInt(p[0])===yy&&parseInt(p[1])===mm}).length:0;
+      for(let i=0;i<mxt;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>'
+    }
     return`<div class="task-card ${sevClass} ${overdue?'overdue':''} ${doneClass}">
       <div class="card-body" onclick="app.openDetail('${task.id}')">
         <div class="card-top"><div class="card-name">${task.name}</div></div>
-        <div class="card-meta"><div class="card-due">${s.dueDate?(task.type==='rolling'?'下次 '+fmtDateShort(s.dueDate):'截止 '+fmtDateShort(s.dueDate)):(s.label||'')}</div><div class="card-countdown ${cc}">${s.label}</div></div>
+        <div class="card-mid">${dots?`<div class="prog-bar">${dots}</div>`:''}</div>
+        <div class="card-bot"><div class="card-countdown ${cc}">${cdText||s.label}</div></div>
       </div>
       <div class="card-cal-btn" onclick="event.stopPropagation();app.openCalPicker('${task.id}')">📅</div>
       <div class="card-done-btn" onclick="event.stopPropagation();app.quickDone('${task.id}')">✓</div>
