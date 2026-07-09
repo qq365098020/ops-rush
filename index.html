@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260709-1519">
+<meta name="version" content="20260709-1521">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -372,7 +372,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
   if(v&&!cv)localStorage.setItem('_app_version',v);
   // PWA缓存穿透：后台拉取最新版本号，不一致则刷新
   if(cv){
-    fetch('manifest.json?_='+Date.now(),{cache:'no-store'})
+    fetch('https://raw.githubusercontent.com/qq365098020/ops-rush/main/manifest.json?_='+Date.now(),{cache:'no-store'})
       .then(function(r){return r.json()})
       .then(function(d){if(d.version&&d.version!==cv){localStorage.setItem('_app_version',d.version);location.reload()}})
       .catch(function(){});
@@ -1375,7 +1375,7 @@ class App {
   confirmReset(){this.showConfirm('重置所有数据','将清除所有任务数据和记录，不可恢复！',()=>{localStorage.removeItem('opsrush_data');this.tasks=JSON.parse(JSON.stringify(DEFAULT_TASKS));this.save();this.render();this.toast('🗑️ 数据已重置')})}
   checkUpdate(){
     this.toast('⏳ 正在检查更新...');
-    fetch('manifest.json?_='+Date.now(),{cache:'no-store'})
+    fetch('https://raw.githubusercontent.com/qq365098020/ops-rush/main/manifest.json?_='+Date.now(),{cache:'no-store'})
       .then(r=>r.json())
       .then(d=>{
         if(!d.version)return;
