@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260709-1042">
+<meta name="version" content="20260709-1509">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -382,7 +382,7 @@ const DEFAULT_TASKS = [
   {id:'anti_money_laundering',name:'反洗钱检查',type:'rolling',severity:'red',intervalDays:2,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每2天',desc:'从上次完成日起计算，满2天未完成则标红预警。周六关门日计入天数。'},
   {id:'atm_cleaning',name:'ATM清机',type:'rolling',severity:'red',intervalDays:4,lastCompleted:null,reviews:[],note:'',manualResetDates:[],typeLabel:'滚动 · 每4天',desc:'',linkedFrom:'inventory_check'},
   {id:'atm_register',name:'ATM机登记本',type:'rolling',severity:'yellow',intervalDays:4,lastCompleted:null,reviews:[],note:'',typeLabel:'滚动 · 每4天',desc:'至少每4天登记一次。周六关门日计入天数。'},
-  {id:'inventory_check',name:'每旬查库&改密码',type:'旬',severity:'red',multiCompletion:true,lastCompleted:null,reviews:[],note:'',completions:{},typeLabel:'月度 · 每旬',desc:'每月3次：1-10号、11-20号、21-31号各完成一次。每旬开始即持续提醒。周六关门日截止日提前至周五。完成本任务会自动重置"ATM清机"计时。',linkTo:'atm_cleaning'},
+  {id:'inventory_check',name:'每旬查库&改密码&登记',type:'旬',severity:'red',multiCompletion:true,lastCompleted:null,reviews:[],note:'',completions:{},typeLabel:'月度 · 每旬',desc:'每月3次：1-10号、11-20号、21-31号各完成一次。每旬开始即持续提醒。周六关门日截止日提前至周五。完成本任务会自动重置"ATM清机"计时。',linkTo:'atm_cleaning'},
   {id:'security_study',name:'安保本学习记录',type:'monthly_range',severity:'yellow',multiCompletion:true,lastCompleted:null,reviews:[],note:'',monthParts:[{label:'第1篇',before:15},{label:'第2篇',after:25}],typeLabel:'月度 · 2篇/月',desc:'第1篇：15号之前完成。第2篇：25号之后完成（抄中心社内容）。'},
   {id:'counterfeit_surrender',name:'反假币上缴登记',type:'monthly_fixed',severity:'green',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1天完成。遇周六推迟至周日。'},
   {id:'monthly_stats',name:'每月统计业务量',type:'monthly_fixed',severity:'yellow',day:1,postponeSat:true,reviews:[],note:'',lastCompleted:null,typeLabel:'月度 · 每月1号',desc:'每月第1天完成。遇周六推迟至周日。'},
@@ -931,7 +931,7 @@ class App {
       if(s.status==='overdue')overdue.push(task);
       else if(s.status==='today')overdue.push(task); // 今天到期也算待处理
       else if(s.status==='done'&&(!task.multiCompletion||this.isMonthFullyComplete(task)))done.push(task);
-       else if(s.status==='done'&&task.multiCompletion&&!this.isMonthFullyComplete(task))overdue.push(task);
+       else if(s.status==='done'&&task.multiCompletion&&!this.isMonthFullyComplete(task)){if(task.type==='旬')upcoming.push(task);else overdue.push(task)}
       else if(s.status==='pending')overdue.push(task);
       else if(s.status==='missed')overdue.push(task);
       else if(s.status==='soon'||(s.daysLeft!==null&&s.daysLeft<=3))upcoming.push(task);
@@ -1020,7 +1020,7 @@ class App {
     // Direct complete today (no calendar)
     const task=this.tasks.find(t=>t.id===taskId);if(!task)return;
     const s=this.getTaskStatus(task);
-    if(s.status==='done'){this.openDetail(taskId);return}
+    if(s.status==='done'&&task.type!=='旬'){this.openDetail(taskId);return}
     this.completeTask(taskId, TODAY());if(document.getElementById('detailModal').classList.contains('show'))this.refreshDetail(taskId);
   }
 
