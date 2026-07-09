@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260709-1017">
+<meta name="version" content="20260709-1039">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -113,9 +113,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .task-card .card-bot{text-align:right}
 .task-card .card-row{display:flex;align-items:center;justify-content:space-between;min-height:18px}
 .task-card .prog-bar{display:flex;gap:6px;align-items:center}
-.task-card .prog-dot{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0;border:1.5px solid rgba(255,255,255,.3);background:transparent}
+.task-card .prog-dot{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0;border:1.5px solid rgba(0,0,0,.7);background:transparent}
 .task-card .prog-on{background:var(--green);border-color:var(--green);box-shadow:0 0 4px var(--green)}
-.task-card .prog-off{border-color:rgba(255,255,255,.2);background:transparent}
+.task-card .prog-off{border-color:rgba(0,0,0,.5);background:transparent}
 .task-card .card-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;margin-left:6px;flex-shrink:0}
 .severity-red .card-tag{background:var(--red-bg);color:var(--red)}
 .severity-yellow .card-tag{background:var(--yellow-bg);color:var(--yellow)}
@@ -992,23 +992,25 @@ class App {
     else if(s.daysLeft!==null&&s.daysLeft===0)cdText='今天到期';
     else if(s.daysLeft!==null&&s.daysLeft>0)cdText='剩余'+s.daysLeft+'天';
     else cdText=s.label||'';
-    // 进度格子
-    let dots='';
+    // 进度格子+进度文字
+    let dots='',progText='';
     const now=new Date();const yy=now.getFullYear(),mm=now.getMonth();
     if(task.type==='旬'){
       const dc=[1,2,3].filter(i=>{const k=`${yy}-${mm}-${i}`;const v=task.completions?.[k];return v&&(Array.isArray(v)?v.length>0:true)}).length;
-      for(let i=0;i<3;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>'
+      for(let i=0;i<3;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>';progText=dc+'/3'
     }else if(task.type==='monthly_multi'&&task.days&&task.days.length){
       const dc=task.days.filter(d=>{let t;if(d===1)t=new Date(yy,mm+1,1);else t=new Date(yy,mm,d);const k=`${t.getFullYear()}-${t.getMonth()}-${t.getDate()}`;return task.completions?.[k]}).length;
-      for(let i=0;i<task.days.length;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>'
+      for(let i=0;i<task.days.length;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>';progText=dc+'/'+task.days.length
     }else if(task.multiCompletion&&(task.type==='weekly'||task.monthlyTarget)){
       const mxt=task.monthlyTarget||4;const dc=task.completionHistory?task.completionHistory.filter(h=>{const p=chDate(h).split('-');return parseInt(p[0])===yy&&parseInt(p[1])===mm}).length:0;
-      for(let i=0;i<mxt;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>'
+      for(let i=0;i<mxt;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>';progText=dc+'/'+mxt
     }
+    // 组合进度文字+倒计时
+    const fullText=progText?(progText+(cdText?' · '+cdText:'')):cdText;
     return`<div class="task-card ${sevClass} ${overdue?'overdue':''} ${doneClass}">
       <div class="card-body" onclick="app.openDetail('${task.id}')">
         <div class="card-top"><div class="card-name">${task.name}</div></div>
-        <div class="card-row">${dots?`<div class="prog-bar">${dots}</div>`:'<div></div>'}<div class="card-countdown ${cc}">${cdText||s.label}</div></div>
+        <div class="card-row">${dots?`<div class="prog-bar">${dots}</div>`:'<div></div>'}<div class="card-countdown ${cc}">${fullText||s.label}</div></div>
       </div>
       <div class="card-cal-btn" onclick="event.stopPropagation();app.openCalPicker('${task.id}')">📅</div>
       <div class="card-done-btn" onclick="event.stopPropagation();app.quickDone('${task.id}')">✓</div>
