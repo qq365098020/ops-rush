@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260709-1039">
+<meta name="version" content="20260709-1042">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -28,6 +28,7 @@
   --yellow:#ff9500;--yellow-bg:rgba(255,149,0,.1);--yellow-glow:rgba(255,149,0,.2);
   --green:#34c759;--green-bg:rgba(52,199,89,.12);--green-glow:rgba(52,199,89,.2);
   --blue:#007aff;--blue-bg:rgba(0,122,255,.1);
+  --orange:#ff7b00;--orange-bg:rgba(255,123,0,.12);--orange-glow:rgba(255,123,0,.2);
   --purple:#af52de;
   --radius:18px;--radius-sm:14px;
   --safe-top:env(safe-area-inset-top,20px);
@@ -99,12 +100,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .task-card{background:var(--glass);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);border:1px solid var(--glass-border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px var(--glass-shadow)}
 .task-card:active{transform:scale(.97)}
 .task-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3.5px;border-radius:var(--radius) 0 0 var(--radius)}
-.task-card.severity-red::before{background:linear-gradient(180deg,var(--red),#ff6b6b)}
-.task-card.severity-yellow::before{background:linear-gradient(180deg,var(--yellow),#ffb840)}
-.task-card.severity-green::before{background:linear-gradient(180deg,var(--green),#5ce882)}
-.task-card.overdue{border-color:rgba(255,59,48,.25);box-shadow:0 2px 16px rgba(255,59,48,.1)}
-.task-card.overdue.severity-red{animation:pulse-red 2.5s ease-in-out infinite}
-@keyframes pulse-red{0%,100%{box-shadow:0 2px 16px rgba(255,59,48,.1)}50%{box-shadow:0 4px 24px rgba(255,59,48,.2)}}
+.task-card.severity-red::before,.task-card.severity-yellow::before,.task-card.severity-green::before{background:linear-gradient(180deg,var(--orange),#ff9f40)}
+.task-card.overdue{border-color:rgba(255,123,0,.25);box-shadow:0 2px 16px rgba(255,123,0,.1)}
+.task-card.overdue.severity-red{animation:pulse-orange 2.5s ease-in-out infinite}
+@keyframes pulse-orange{0%,100%{box-shadow:0 2px 16px rgba(255,123,0,.1)}50%{box-shadow:0 4px 24px rgba(255,123,0,.2)}}
 
 .card-body{flex:1;min-width:0}
 .task-card .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
@@ -117,20 +116,18 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .task-card .prog-on{background:var(--green);border-color:var(--green);box-shadow:0 0 4px var(--green)}
 .task-card .prog-off{border-color:rgba(0,0,0,.5);background:transparent}
 .task-card .card-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;margin-left:6px;flex-shrink:0}
-.severity-red .card-tag{background:var(--red-bg);color:var(--red)}
-.severity-yellow .card-tag{background:var(--yellow-bg);color:var(--yellow)}
-.severity-green .card-tag{background:var(--green-bg);color:var(--green)}
+.severity-red .card-tag,.severity-yellow .card-tag,.severity-green .card-tag{background:var(--orange-bg);color:var(--orange)}
 .task-card .card-meta{display:flex;justify-content:space-between;align-items:center}
 .task-card .card-due{font-size:11px;color:var(--text3);font-weight:500}
 .task-card .card-countdown{font-size:11px;font-weight:600}
-.task-card .card-countdown.overdue-text{color:var(--red)}
-.task-card .card-countdown.soon-text{color:var(--yellow)}
+.task-card .card-countdown.overdue-text{color:var(--orange)}
+.task-card .card-countdown.soon-text{color:var(--orange)}
 .task-card .card-countdown.ok-text{color:var(--text3)}
 /* 严重等级匹配：倒计时文字颜色跟随横条光晕 */
 .task-card.severity-red .card-countdown.ok-text,
-.task-card.severity-red .card-countdown.soon-text{color:var(--red)}
+.task-card.severity-red .card-countdown.soon-text{color:var(--orange)}
 .task-card.severity-yellow .card-countdown.ok-text,
-.task-card.severity-yellow .card-countdown.soon-text{color:var(--yellow)}
+.task-card.severity-yellow .card-countdown.soon-text{color:var(--orange)}
 
 
 
