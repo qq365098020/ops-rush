@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260709-0955">
+<meta name="version" content="20260709-1017">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -112,10 +112,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .task-card .card-mid{min-height:10px;margin-bottom:4px}
 .task-card .card-bot{text-align:right}
 .task-card .card-row{display:flex;align-items:center;justify-content:space-between;min-height:18px}
-.task-card .prog-bar{display:flex;gap:5px;align-items:center;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:3px 10px;width:80px;justify-content:center}
-.task-card .prog-dot{width:6px;height:6px;border-radius:2px;display:inline-block;flex-shrink:0}
-.task-card .prog-on{background:var(--green);box-shadow:0 0 4px var(--green)}
-.task-card .prog-off{background:rgba(255,255,255,.12)}
+.task-card .prog-bar{display:flex;gap:6px;align-items:center}
+.task-card .prog-dot{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0;border:1.5px solid rgba(255,255,255,.3);background:transparent}
+.task-card .prog-on{background:var(--green);border-color:var(--green);box-shadow:0 0 4px var(--green)}
+.task-card .prog-off{border-color:rgba(255,255,255,.2);background:transparent}
 .task-card .card-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;margin-left:6px;flex-shrink:0}
 .severity-red .card-tag{background:var(--red-bg);color:var(--red)}
 .severity-yellow .card-tag{background:var(--yellow-bg);color:var(--yellow)}
@@ -427,7 +427,7 @@ class App {
   load(){
     try{
       const raw=localStorage.getItem('opsrush_data');
-      if(raw){const data=JSON.parse(raw);this.tasks=data.tasks||[];const ids=new Set(this.tasks.map(t=>t.id));DEFAULT_TASKS.forEach(dt=>{if(!ids.has(dt.id))this.tasks.push(JSON.parse(JSON.stringify(dt)))})}
+      if(raw){const data=JSON.parse(raw);this.tasks=data.tasks||[];this.tasks=this.tasks.filter(t=>t.id!=='cash_zero');const ids=new Set(this.tasks.map(t=>t.id));DEFAULT_TASKS.forEach(dt=>{if(!ids.has(dt.id))this.tasks.push(JSON.parse(JSON.stringify(dt)))})}
       else this.tasks=JSON.parse(JSON.stringify(DEFAULT_TASKS));
       // Migration: sync default properties for existing tasks
       this.tasks.forEach(t=>{
@@ -444,9 +444,7 @@ class App {
           if(def.linkedFrom!==undefined)t.linkedFrom=def.linkedFrom;
         }
         if(t.type==='旬'||t.type==='monthly_range'||t.type==='monthly_multi')t.multiCompletion=true;
-        if(t.id==='safety_check'){if(!t.multiCompletion)t.multiCompletion=true;if(!t.monthlyTarget)t.monthlyTarget=4;if(!t.completionHistory)t.completionHistory=[];t.weekStart=1}if(t.id==='call_9999'){t.lastNDays=4;if(!t.completions)t.completions={};t.desc=''}if(t.id==='atm_cleaning'){t.desc=''}if(t.id==='computer_log'){t.type='monthly_multi';t.days=[2,17];t.multiCompletion=true;if(!t.completions)t.completions={};delete t.weekday;delete t.monthlyTarget}
-        // 清理已删除的任务
-        if(t.id==='cash_zero')return;
+        if(t.id==='computer_log'){t.type='monthly_multi';t.days=[2,17];t.multiCompletion=true;if(!t.completions)t.completions={};delete t.weekday;delete t.monthlyTarget}
         if(t.type==='rolling'&&!t.completionHistory)t.completionHistory=[];
         // 修复: rolling任务 lastCompleted 为空时从 completionHistory 恢复
         if(t.type==='rolling'&&!t.lastCompleted&&t.completionHistory&&t.completionHistory.length){
@@ -987,11 +985,13 @@ class App {
     const sevClass=`severity-${task.severity}`;const overdue=s.overdue;
     const doneClass=isDone&&s.status==='done'?'done-card':'';
     let cc='ok-text';if(s.overdue)cc='overdue-text';else if(s.daysLeft!==null&&s.daysLeft<=3)cc='soon-text';
-    // 倒计时格式化:逾期-9/剩余+2/今天0
+    // 倒计时格式化:逾期N天/今天到期/剩余N天
     let cdText='';
-    if(s.daysLeft!==null&&s.daysLeft<0)cdText=String(s.daysLeft);
-    else if(s.daysLeft!==null&&s.daysLeft===0)cdText='0';
-    else if(s.daysLeft!==null&&s.daysLeft>0)cdText='+'+s.daysLeft;
+    if(s.overdue&&s.daysLeft===null)cdText=s.label||'';
+    else if(s.overdue&&s.daysLeft!==null)cdText='逾期'+(-s.daysLeft)+'天';
+    else if(s.daysLeft!==null&&s.daysLeft===0)cdText='今天到期';
+    else if(s.daysLeft!==null&&s.daysLeft>0)cdText='剩余'+s.daysLeft+'天';
+    else cdText=s.label||'';
     // 进度格子
     let dots='';
     const now=new Date();const yy=now.getFullYear(),mm=now.getMonth();
