@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260710-1826">
+<meta name="version" content="20260710-1846">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -43,12 +43,13 @@
   --radius:20px;--radius-sm:16px;
   --safe-top:env(safe-area-inset-top,20px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
-  --bottom-nav-safe:var(--safe-bottom);
+  --viewport-bottom-gap:0px;
+  --bottom-nav-safe:max(var(--safe-bottom),var(--viewport-bottom-gap));
   --bottom-nav-height:calc(64px + var(--bottom-nav-safe));
 }
 @media (hover:none) and (pointer:coarse){
   :root{
-    --bottom-nav-safe:max(var(--safe-bottom),34px);
+    --bottom-nav-safe:max(var(--safe-bottom),var(--viewport-bottom-gap),34px);
   }
 }
 html{width:100%;height:100%;min-height:100%;margin:0;padding:0;overflow:hidden;background:var(--page-bg),var(--page-bg-color);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;color:var(--text);font-size:15px;-webkit-font-smoothing:antialiased}
@@ -194,7 +195,7 @@ body::after{content:'';position:fixed;inset:-80px;z-index:0;
 .setting-group-title{font-size:11px;font-weight:800;color:var(--text3);letter-spacing:0;margin:20px 2px 8px;text-transform:uppercase}
 
 /* Bottom nav */
-.bottom-nav{display:flex;justify-content:space-around;align-items:center;height:var(--bottom-nav-height);padding:5px 16px var(--bottom-nav-safe);background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;border:none;position:fixed;bottom:0;left:0;right:0;z-index:50;box-shadow:none;pointer-events:none}
+.bottom-nav{display:flex;justify-content:space-around;align-items:center;height:var(--bottom-nav-height);padding:0 16px;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;border:none;position:fixed;bottom:0;left:0;right:0;z-index:50;box-shadow:none;pointer-events:none}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 20px;cursor:pointer;transition:all .25s;opacity:.42;border-radius:16px;background:rgba(255,255,255,.08);backdrop-filter:blur(36px) saturate(2);-webkit-backdrop-filter:blur(36px) saturate(2);pointer-events:auto}
 .nav-item.active{opacity:1;background:rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.52),0 8px 22px rgba(55,101,137,.08)}
 .nav-item:active{transform:scale(.92)}
@@ -444,7 +445,7 @@ class App {
   constructor(){
     this.tasks=[];this.currentPage='pageDashboard';this.activeTab='overdue';
     this._calMonth=0;this._calYear=0;this._calSelected=null;this._calTaskId=null;this._miniCalMonth=new Date().getMonth();this._miniCalYear=new Date().getFullYear();
-    this.load();this.setupNav();this.updateDate();
+    this.setupViewportVars();this.load();this.setupNav();this.updateDate();
     // 首次渲染
     this.switchPage('pageDashboard');
     setInterval(()=>this.render(),60000);
@@ -487,6 +488,20 @@ class App {
   }
 
   save(){localStorage.setItem('opsrush_data',JSON.stringify({tasks:this.tasks,savedAt:new Date().toISOString()}))}
+
+  setupViewportVars(){
+    const update=()=>{
+      const vv=window.visualViewport;
+      const gap=vv?Math.max(0,window.innerHeight-vv.height-vv.offsetTop):0;
+      document.documentElement.style.setProperty('--viewport-bottom-gap',`${Math.ceil(gap)}px`);
+    };
+    update();
+    window.addEventListener('resize',update,{passive:true});
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize',update,{passive:true});
+      window.visualViewport.addEventListener('scroll',update,{passive:true});
+    }
+  }
 
   updateDate(){
     const d=TODAY();const wk=['日','一','二','三','四','五','六'];
