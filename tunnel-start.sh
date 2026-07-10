@@ -1,6 +1,6 @@
 #!/bin/bash
 # 运营RUSH Cloudflare Tunnel 自动启动脚本
-REPO="/home/oiio/橙子的工作台/运营RUSH"
+REPO="/home/oiio/Codex的工作台/运营RUSH"
 
 # 启动HTTP服务器
 cd "$REPO"

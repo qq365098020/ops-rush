@@ -3,7 +3,7 @@
 # 用法: bash deploy.sh "提交信息"
 set -e
 
-REPO="/home/oiio/橙子的工作台/运营RUSH"
+REPO="/home/oiio/Codex的工作台/运营RUSH"
 COMMIT_MSG="${1:-auto deploy}"
 
 # 1. 生成时间戳（北京时间）
@@ -14,6 +14,8 @@ TIMESTAMP=$(TZ=$TZ date +"%Y%m%d-%H%M")
 sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$TIMESTAMP\"/" "$REPO/manifest.json"
 # 更新manifest.json的start_url带版本号
 sed -i "s|\"start_url\": \"[^\"]*\"|\"start_url\": \"./index.html?v=$TIMESTAMP\"|" "$REPO/manifest.json"
+# 更新version.json版本号
+printf '{"version":"%s"}\n' "$TIMESTAMP" > "$REPO/version.json"
 
 # 3. 更新HTML中的meta version标签
 sed -i "s|<meta name=\"version\" content=\"[^\"]*\">|<meta name=\"version\" content=\"$TIMESTAMP\">|" "$REPO/index.html"

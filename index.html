@@ -9,45 +9,50 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="运营RUSH">
-<meta name="version" content="20260709-1521">
+<meta name="version" content="20260710-1346">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<meta name="theme-color" content="#f0ebe3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#f0ebe3" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eef7ff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#eef7ff" media="(prefers-color-scheme: dark)">
 <title>运营RUSH</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#f0ebe3;--bg2:rgba(255,255,255,.45);
-  --glass:rgba(255,255,255,.35);--glass2:rgba(255,255,255,.5);
-  --glass-border:rgba(255,255,255,.5);
-  --glass-shadow:rgba(0,0,0,.04);
-  --text:#2c2c2e;--text2:rgba(0,0,0,.5);--text3:rgba(0,0,0,.3);
+  --bg:#eef7ff;--bg2:rgba(255,255,255,.34);
+  --glass:linear-gradient(135deg,rgba(255,255,255,.46),rgba(255,255,255,.18));
+  --glass2:linear-gradient(135deg,rgba(255,255,255,.58),rgba(255,255,255,.26));
+  --glass-fill:rgba(255,255,255,.24);
+  --glass-strong:rgba(255,255,255,.42);
+  --glass-border:rgba(255,255,255,.68);
+  --glass-edge:rgba(255,255,255,.9);
+  --glass-shadow:rgba(55,105,140,.14);
+  --text:#111318;--text2:rgba(17,19,24,.62);--text3:rgba(17,19,24,.4);
   --red:#ff3b30;--red-bg:rgba(255,59,48,.12);--red-glow:rgba(255,59,48,.2);
   --yellow:#ff9500;--yellow-bg:rgba(255,149,0,.1);--yellow-glow:rgba(255,149,0,.2);
   --green:#34c759;--green-bg:rgba(52,199,89,.12);--green-glow:rgba(52,199,89,.2);
   --blue:#007aff;--blue-bg:rgba(0,122,255,.1);
   --orange:#ff7b00;--orange-bg:rgba(255,123,0,.12);--orange-glow:rgba(255,123,0,.2);
   --purple:#af52de;
-  --radius:18px;--radius-sm:14px;
+  --radius:20px;--radius-sm:16px;
   --safe-top:env(safe-area-inset-top,20px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;background:var(--bg);color:var(--text);font-size:15px;-webkit-font-smoothing:antialiased}
 body{display:flex;flex-direction:column}
 
-/* Warm BG with soft colored blobs */
-body::before{content:'';position:fixed;inset:0;background:#f0ebe3;z-index:0}
-body::after{content:'';position:fixed;inset:0;z-index:0;
+/* iCloud-inspired translucent wallpaper */
+body::before{content:'';position:fixed;inset:-24px;background:
+  linear-gradient(135deg,#d8efff 0%,#f7fbff 30%,#fbf4df 55%,#eafdf4 78%,#c8eaff 100%);
+  z-index:0}
+body::after{content:'';position:fixed;inset:-80px;z-index:0;
   background:
-    radial-gradient(ellipse 600px 500px at 20% 5%, rgba(0,122,255,.06) 0%, transparent 60%),
-    radial-gradient(ellipse 500px 500px at 80% 15%, rgba(175,82,222,.05) 0%, transparent 60%),
-    radial-gradient(ellipse 700px 400px at 50% 70%, rgba(255,149,0,.04) 0%, transparent 60%),
-    radial-gradient(ellipse 500px 500px at 15% 85%, rgba(52,199,89,.04) 0%, transparent 60%);
+    conic-gradient(from 210deg at 45% 40%, rgba(0,122,255,.22), rgba(255,204,0,.18), rgba(52,199,89,.18), rgba(175,82,222,.16), rgba(0,122,255,.22)),
+    linear-gradient(118deg, rgba(255,255,255,.4), rgba(255,255,255,0) 34%, rgba(255,255,255,.34) 68%, rgba(255,255,255,0));
   pointer-events:none;
-  animation:blobShift 30s ease-in-out infinite alternate}
-@keyframes blobShift{
+  filter:blur(18px) saturate(1.16);
+  animation:wallpaperShift 28s ease-in-out infinite alternate}
+@keyframes wallpaperShift{
   0%{transform:translate(0,0) scale(1)}
   50%{transform:translate(20px,-15px) scale(1.05)}
   100%{transform:translate(-15px,10px) scale(.97)}
@@ -57,26 +62,27 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 #app{flex:1;display:flex;flex-direction:column;position:relative;z-index:1;overflow:hidden}
 
 /* Header */
-.header{padding:calc(var(--safe-top) + 12px) 20px 10px;text-align:center;position:relative}
-.header .header-logo{width:64px;height:64px;border-radius:16px;margin:0 auto 6px;display:block;object-fit:cover;box-shadow:0 4px 20px rgba(0,122,255,.2)}
-.header h1{font-size:22px;font-weight:800;background:linear-gradient(135deg,#007aff,#af52de);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px}
-.header .subtitle{font-size:11px;color:var(--text3);margin-top:2px;font-weight:500}
+.header{padding:calc(var(--safe-top) + 10px) 18px 12px;text-align:left;position:relative;display:grid;grid-template-columns:52px 1fr;grid-template-rows:auto auto;align-items:center;column-gap:12px;background:rgba(255,255,255,.2);backdrop-filter:blur(56px) saturate(2.4) brightness(1.06);-webkit-backdrop-filter:blur(56px) saturate(2.4) brightness(1.06);border-bottom:1px solid rgba(255,255,255,.56);box-shadow:inset 0 -1px 0 rgba(255,255,255,.34),0 12px 34px rgba(76,123,159,.12)}
+.header::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.05));pointer-events:none}
+.header .header-logo{width:52px;height:52px;border-radius:15px;grid-row:1/3;display:block;object-fit:cover;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 8px 24px rgba(32,120,190,.18)}
+.header h1{font-size:28px;font-weight:800;color:var(--text);line-height:1.04;letter-spacing:0;position:relative}
+.header .subtitle{font-size:12px;color:var(--text2);margin-top:2px;font-weight:600;letter-spacing:0;position:relative}
 
 /* Pages */
-.page{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 16px 70px;display:none;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+.page{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:14px 16px 92px;display:none;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
 .page.active{display:block;opacity:1;transform:translateY(0)}
 
 /* Tab Bar */
-.tab-bar{display:flex;gap:6px;margin-bottom:14px;padding:5px;background:var(--glass);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);border:1px solid var(--glass-border);border-radius:16px;box-shadow:0 2px 12px var(--glass-shadow)}
+.tab-bar{display:flex;gap:6px;margin-bottom:14px;padding:5px;background:var(--glass);backdrop-filter:blur(56px) saturate(2.25);-webkit-backdrop-filter:blur(56px) saturate(2.25);border:1px solid var(--glass-border);border-radius:18px;box-shadow:inset 0 1px 0 var(--glass-edge),0 14px 34px var(--glass-shadow)}
 .tab-item{flex:1;text-align:center;padding:10px 4px;border-radius:12px;cursor:pointer;transition:all .3s cubic-bezier(.32,.72,0,1);position:relative}
 .tab-item .tab-num{font-size:22px;font-weight:700;display:block;line-height:1.1}
-.tab-item .tab-label{font-size:11px;color:var(--text3);margin-top:3px;display:block;transition:color .3s;font-weight:500}
+.tab-item .tab-label{font-size:11px;color:var(--text3);margin-top:3px;display:block;transition:color .3s;font-weight:600;letter-spacing:0}
 .tab-item.active .tab-label{color:var(--text)}
-.tab-item[data-tab="overdue"].active{background:rgba(255,59,48,.12);box-shadow:0 2px 16px rgba(255,59,48,.1)}
+.tab-item[data-tab="overdue"].active{background:rgba(255,255,255,.34);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 8px 22px rgba(255,59,48,.11)}
 .tab-item[data-tab="overdue"] .tab-num{color:var(--red)}
-.tab-item[data-tab="upcoming"].active{background:rgba(255,149,0,.12);box-shadow:0 2px 16px rgba(255,149,0,.08)}
+.tab-item[data-tab="upcoming"].active{background:rgba(255,255,255,.34);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 8px 22px rgba(255,149,0,.1)}
 .tab-item[data-tab="upcoming"] .tab-num{color:var(--yellow)}
-.tab-item[data-tab="done"].active{background:rgba(52,199,89,.12);box-shadow:0 2px 16px rgba(52,199,89,.08)}
+.tab-item[data-tab="done"].active{background:rgba(255,255,255,.34);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 8px 22px rgba(52,199,89,.1)}
 .tab-item[data-tab="done"] .tab-num{color:var(--green)}
 
 /* Tab content */
@@ -87,34 +93,35 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 
 /* Sections */
 .section{margin-bottom:16px}
-.section-header{display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer;user-select:none}
+.section-header{display:flex;align-items:center;gap:8px;padding:8px 2px;cursor:pointer;user-select:none}
 .section-header .icon{font-size:18px}
-.section-header .title{font-size:14px;font-weight:600;letter-spacing:.3px}
-.section-header .count{font-size:11px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:2px 8px;border-radius:10px;color:var(--text2);font-weight:600}
+.section-header .title{font-size:14px;font-weight:700;letter-spacing:0}
+.section-header .count{font-size:11px;background:rgba(255,255,255,.28);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);padding:2px 8px;border:1px solid rgba(255,255,255,.52);border-radius:10px;color:var(--text2);font-weight:700}
 .section-header .arrow{margin-left:auto;font-size:12px;color:var(--text3);transition:transform .3s}
 .section-header.collapsed .arrow{transform:rotate(-90deg)}
 .section-body{transition:max-height .4s ease,opacity .3s;overflow:hidden}
 .section-header.collapsed+.section-body{max-height:0!important;opacity:0}
 
-/* Task cards — glass morphism */
-.task-card{background:var(--glass);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);border:1px solid var(--glass-border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px var(--glass-shadow)}
+/* Task cards */
+.task-card{background:var(--glass);backdrop-filter:blur(58px) saturate(2.25) brightness(1.05);-webkit-backdrop-filter:blur(58px) saturate(2.25) brightness(1.05);border:1px solid var(--glass-border);border-radius:var(--radius);padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:transform .2s,box-shadow .2s,background .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;box-shadow:inset 0 1px 0 var(--glass-edge),inset 0 -1px 0 rgba(255,255,255,.18),0 16px 34px rgba(56,99,128,.13)}
 .task-card:active{transform:scale(.97)}
 .task-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3.5px;border-radius:var(--radius) 0 0 var(--radius)}
 .task-card.severity-red::before,.task-card.severity-yellow::before,.task-card.severity-green::before{background:linear-gradient(180deg,var(--orange),#ff9f40)}
-.task-card.overdue{border-color:rgba(255,123,0,.25);box-shadow:0 2px 16px rgba(255,123,0,.1)}
-.task-card.overdue.severity-red{animation:pulse-orange 2.5s ease-in-out infinite}
-@keyframes pulse-orange{0%,100%{box-shadow:0 2px 16px rgba(255,123,0,.1)}50%{box-shadow:0 4px 24px rgba(255,123,0,.2)}}
+.task-card::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,rgba(255,255,255,.44),transparent 38%,rgba(255,255,255,.1) 70%);opacity:.68;pointer-events:none}
+.task-card.overdue{border-color:rgba(255,168,80,.5);box-shadow:inset 0 1px 0 var(--glass-edge),0 16px 36px rgba(255,123,0,.14)}
+.task-card.overdue.severity-red{animation:pulse-orange 2.8s ease-in-out infinite}
+@keyframes pulse-orange{0%,100%{box-shadow:inset 0 1px 0 var(--glass-edge),0 16px 36px rgba(255,123,0,.14)}50%{box-shadow:inset 0 1px 0 var(--glass-edge),0 18px 42px rgba(255,123,0,.24)}}
 
-.card-body{flex:1;min-width:0}
+.card-body{flex:1;min-width:0;position:relative;z-index:1}
 .task-card .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
 .task-card .card-name{font-size:14px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
 .task-card .card-mid{min-height:10px;margin-bottom:4px}
 .task-card .card-bot{text-align:right}
 .task-card .card-row{display:flex;align-items:center;justify-content:space-between;min-height:18px}
 .task-card .prog-bar{display:flex;gap:6px;align-items:center}
-.task-card .prog-dot{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0;border:1.5px solid rgba(0,0,0,.7);background:transparent}
+.task-card .prog-dot{width:10px;height:10px;border-radius:3px;display:inline-block;flex-shrink:0;border:1.5px solid rgba(17,19,24,.42);background:rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
 .task-card .prog-on{background:var(--green);border-color:var(--green);box-shadow:0 0 4px var(--green)}
-.task-card .prog-off{border-color:rgba(0,0,0,.5);background:transparent}
+.task-card .prog-off{border-color:rgba(17,19,24,.34);background:rgba(255,255,255,.12)}
 .task-card .card-tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;margin-left:6px;flex-shrink:0}
 .severity-red .card-tag,.severity-yellow .card-tag,.severity-green .card-tag{background:var(--orange-bg);color:var(--orange)}
 .task-card .card-meta{display:flex;justify-content:space-between;align-items:center}
@@ -133,7 +140,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 
 
 /* Quick complete button */
-.card-done-btn{width:36px;height:36px;border-radius:50%;border:2px solid rgba(52,199,89,.35);background:rgba(52,199,89,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;cursor:pointer;font-size:15px;color:var(--green)}
+.card-done-btn{width:36px;height:36px;border-radius:50%;border:1px solid rgba(52,199,89,.38);background:rgba(255,255,255,.24);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;cursor:pointer;font-size:15px;color:var(--green);position:relative;z-index:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 8px 20px rgba(52,199,89,.1)}
 .card-done-btn:active{transform:scale(.85);background:rgba(52,199,89,.25);border-color:var(--green)}
 .done-card .card-done-btn{opacity:.3;pointer-events:none}
 
@@ -142,59 +149,48 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .done-card .card-name{text-decoration:line-through}
 
 /* ===== Detail Modal — 居中缩放，更慢的动画 ===== */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.15);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .7s ease}
+.modal-overlay{position:fixed;inset:0;background:rgba(235,247,255,.08);backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .7s ease}
 .modal-overlay.show{opacity:1;pointer-events:auto}
-.modal{background:rgba(255,255,255,.72);backdrop-filter:blur(60px) saturate(2);-webkit-backdrop-filter:blur(60px) saturate(2);border:1px solid rgba(255,255,255,.7);border-radius:22px;width:calc(100% - 36px);max-width:420px;max-height:82vh;overflow-y:auto;padding:24px 20px calc(var(--safe-bottom) + 20px);transform:scale(.78);opacity:0;transition:transform .8s cubic-bezier(.22,.68,0,1),opacity .7s ease;box-shadow:0 8px 40px rgba(0,0,0,.1)}
+.modal{background:linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.24));backdrop-filter:blur(70px) saturate(2.35) brightness(1.06);-webkit-backdrop-filter:blur(70px) saturate(2.35) brightness(1.06);border:1px solid rgba(255,255,255,.74);border-radius:24px;width:calc(100% - 36px);max-width:420px;max-height:82vh;overflow-y:auto;padding:24px 20px calc(var(--safe-bottom) + 20px);transform:scale(.78);opacity:0;transition:transform .8s cubic-bezier(.22,.68,0,1),opacity .7s ease;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.22),0 24px 70px rgba(55,101,137,.18)}
 .modal-overlay.show .modal{transform:scale(1);opacity:1}
-.modal-close-icon{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text3);transition:background .2s}
-.modal-close-icon:active{background:rgba(0,0,0,.1)}
+.modal-close-icon{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.26);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);border:1px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text3);transition:background .2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
+.modal-close-icon:active{background:rgba(255,255,255,.42)}
 .modal-title{font-size:20px;font-weight:700;margin-bottom:4px;padding-right:36px;color:var(--text)}
 .modal-type{font-size:12px;color:var(--text3);margin-bottom:16px;font-weight:500}
 .modal-section{margin-bottom:16px}
-.modal-section-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.modal-info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);margin-bottom:6px}
+.modal-section-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0;margin-bottom:8px}
+.modal-info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass);backdrop-filter:blur(44px) saturate(2);-webkit-backdrop-filter:blur(44px) saturate(2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);margin-bottom:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.72)}
 .modal-info-row .label{font-size:13px;color:var(--text2)}
 .modal-info-row .value{font-size:14px;font-weight:600}
-.modal-note{background:var(--glass);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap}
-.modal-btn{width:100%;padding:14px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;border:none;cursor:pointer;margin-bottom:8px;transition:transform .15s,opacity .15s}
+.modal-note{background:var(--glass);backdrop-filter:blur(44px) saturate(2);-webkit-backdrop-filter:blur(44px) saturate(2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.72)}
+.modal-btn{width:100%;padding:14px;border-radius:var(--radius-sm);font-size:15px;font-weight:700;border:none;cursor:pointer;margin-bottom:8px;transition:transform .15s,opacity .15s;box-shadow:inset 0 1px 0 rgba(255,255,255,.34),0 10px 24px rgba(55,101,137,.12)}
 .modal-btn:active{transform:scale(.97);opacity:.8}
 .btn-complete{background:linear-gradient(135deg,#34c759,#28a745);color:#fff}
 .btn-undo{background:linear-gradient(135deg,#ff9500,#ff6b00);color:#fff}
 .btn-reset{background:linear-gradient(135deg,#007aff,#5856d6);color:#fff}
 
 
-.btn-close{background:var(--glass);color:var(--text2);border:1px solid var(--glass-border)}
+.btn-close{background:var(--glass);color:var(--text2);border:1px solid var(--glass-border);backdrop-filter:blur(34px) saturate(1.8);-webkit-backdrop-filter:blur(34px) saturate(1.8)}
 .btn-delete{background:rgba(255,59,48,.08);color:var(--red);border:1px solid rgba(255,59,48,.15)}
 
-/* Form elements */
-.form-group{margin-bottom:14px}
-.form-label{font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.5px;margin-bottom:6px;display:block}
-.form-input,.form-select,.form-textarea{width:100%;background:var(--glass);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-size:15px;outline:none;transition:border-color .2s;font-family:inherit}
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue)}
-.form-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='rgba(0,0,0,0.3)' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
-.form-select option{background:#fff;color:var(--text)}
-.form-textarea{min-height:80px;resize:vertical}
-.form-row{display:flex;gap:10px}
-.form-row .form-group{flex:1}
-
 /* Settings */
-.setting-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--glass);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:background .2s}
+.setting-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--glass);backdrop-filter:blur(52px) saturate(2.2);-webkit-backdrop-filter:blur(52px) saturate(2.2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);margin-bottom:9px;cursor:pointer;transition:background .2s;box-shadow:inset 0 1px 0 var(--glass-edge),0 14px 32px rgba(56,99,128,.1)}
 .setting-item:active{background:var(--glass2)}
 .setting-item .setting-label{font-size:14px;font-weight:500}
 .setting-item .setting-desc{font-size:11px;color:var(--text3);margin-top:2px}
 .setting-item .setting-arrow{color:var(--text3);font-size:14px}
-.setting-group-title{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin:20px 0 8px;text-transform:uppercase}
+.setting-group-title{font-size:11px;font-weight:800;color:var(--text3);letter-spacing:0;margin:20px 2px 8px;text-transform:uppercase}
 
 /* Bottom nav */
-.bottom-nav{display:flex;justify-content:space-around;align-items:center;padding:4px 0 4px;background:#f0ebe3;border-top:1px solid rgba(255,255,255,.4);position:fixed;bottom:0;left:0;right:0;z-index:50}
-.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 18px;cursor:pointer;transition:all .25s;opacity:.35;border-radius:12px}
-.nav-item.active{opacity:1;background:rgba(0,0,0,.04)}
+.bottom-nav{display:flex;justify-content:space-around;align-items:center;padding:7px 16px calc(var(--safe-bottom) + 7px);background:rgba(255,255,255,.2);backdrop-filter:blur(56px) saturate(2.3) brightness(1.06);-webkit-backdrop-filter:blur(56px) saturate(2.3) brightness(1.06);border-top:1px solid rgba(255,255,255,.58);position:fixed;bottom:0;left:0;right:0;z-index:50;box-shadow:inset 0 1px 0 rgba(255,255,255,.58),0 -14px 36px rgba(55,101,137,.12)}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 22px;cursor:pointer;transition:all .25s;opacity:.42;border-radius:16px}
+.nav-item.active{opacity:1;background:rgba(255,255,255,.28);box-shadow:inset 0 1px 0 rgba(255,255,255,.76),0 8px 22px rgba(55,101,137,.1)}
 .nav-item:active{transform:scale(.92)}
 .nav-item .nav-icon{font-size:22px}
-.nav-item .nav-label{font-size:10px;font-weight:600;letter-spacing:.3px}
+.nav-item .nav-label{font-size:10px;font-weight:700;letter-spacing:0}
 
 /* Toast */
-.toast{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(255,255,255,.75);backdrop-filter:blur(40px) saturate(2);-webkit-backdrop-filter:blur(40px) saturate(2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 20px;font-size:14px;font-weight:500;z-index:200;transition:transform .4s cubic-bezier(.32,.72,0,1);white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.toast{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%) translateY(-80px);background:linear-gradient(135deg,rgba(255,255,255,.58),rgba(255,255,255,.28));backdrop-filter:blur(56px) saturate(2.25);-webkit-backdrop-filter:blur(56px) saturate(2.25);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 20px;font-size:14px;font-weight:600;z-index:200;transition:transform .4s cubic-bezier(.32,.72,0,1);white-space:nowrap;box-shadow:inset 0 1px 0 var(--glass-edge),0 14px 34px rgba(55,101,137,.16)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
 /* Empty state */
@@ -203,15 +199,15 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .empty .empty-text{font-size:14px;font-weight:500}
 
 /* Review */
-.review-item{padding:10px 14px;background:var(--glass);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);margin-bottom:6px}
+.review-item{padding:10px 14px;background:var(--glass);backdrop-filter:blur(44px) saturate(2);-webkit-backdrop-filter:blur(44px) saturate(2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);margin-bottom:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.72)}
 .review-item .review-date{font-size:11px;color:var(--text3)}
 .review-item .review-note{font-size:13px;margin-top:4px;color:var(--text)}
 
 /* Mini calendar (read-only completion history) */
-.mini-cal{background:rgba(0,0,0,.02);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,.05);border-radius:12px;padding:10px 12px;position:relative;overflow:hidden}
+.mini-cal{background:rgba(255,255,255,.2);backdrop-filter:blur(36px) saturate(1.8);-webkit-backdrop-filter:blur(36px) saturate(1.8);border:1px solid rgba(255,255,255,.54);border-radius:14px;padding:10px 12px;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.72)}
 .mini-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .mini-cal-header .mini-cal-title{font-size:13px;font-weight:600;color:var(--text2);text-align:center;flex:1}
-.mini-cal-nav{width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,122,255,.08);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:var(--blue);transition:all .2s;flex-shrink:0}
+.mini-cal-nav{width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.46);background:rgba(255,255,255,.24);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:var(--blue);transition:all .2s;flex-shrink:0}
 .mini-cal-nav:active{background:rgba(0,122,255,.2);transform:scale(.85)}
 .mini-cal-nav:disabled{opacity:.2;cursor:default}
 .mini-cal-grid{transition:transform .6s cubic-bezier(.32,.72,0,1),opacity .35s ease}
@@ -229,10 +225,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .mini-cal-day.done{background:rgba(52,199,89,.18);color:var(--green);font-weight:600}
 
 /* ===== Calendar Picker ===== */
-.calendar-container{background:var(--glass);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);border:1px solid var(--glass-border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.calendar-container{background:var(--glass);backdrop-filter:blur(56px) saturate(2.25);-webkit-backdrop-filter:blur(56px) saturate(2.25);border:1px solid var(--glass-border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:inset 0 1px 0 var(--glass-edge),0 14px 32px rgba(56,99,128,.1)}
 .calendar-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.calendar-nav-btn{width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,.04);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text);transition:background .2s}
-.calendar-nav-btn:active{background:rgba(0,0,0,.1)}
+.calendar-nav-btn{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.52);background:rgba(255,255,255,.24);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text);transition:background .2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.72)}
+.calendar-nav-btn:active{background:rgba(255,255,255,.42)}
 .calendar-month-label{font-size:16px;font-weight:700;color:var(--text)}
 .calendar-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:8px}
 .calendar-weekdays span{font-size:11px;font-weight:600;color:var(--text3);padding:4px 0}
@@ -250,26 +246,26 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .calendar-confirm-btn:disabled{opacity:.4;cursor:default}
 
 /* Calendar picker button on card */
-.card-cal-btn{width:36px;height:36px;border-radius:50%;border:2px solid rgba(0,122,255,.3);background:rgba(0,122,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;cursor:pointer;font-size:14px;color:var(--blue)}
+.card-cal-btn{width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,122,255,.32);background:rgba(255,255,255,.24);backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;cursor:pointer;font-size:14px;color:var(--blue);position:relative;z-index:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 8px 20px rgba(0,122,255,.1)}
 .card-cal-btn:active{transform:scale(.85);background:rgba(0,122,255,.2);border-color:var(--blue)}
 .done-card .card-cal-btn{opacity:.3;pointer-events:none}
 
 /* Calendar overlay (transparent glass, 0.6s) */
-.cal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:110;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .6s ease}
+.cal-overlay{position:fixed;inset:0;background:rgba(235,247,255,.08);backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);z-index:110;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .6s ease}
 .cal-overlay.show{opacity:1;pointer-events:auto}
-.cal-panel{background:rgba(255,255,255,.6);backdrop-filter:blur(60px) saturate(2);-webkit-backdrop-filter:blur(60px) saturate(2);border:1px solid rgba(255,255,255,.65);border-radius:22px;width:calc(100% - 36px);max-width:380px;padding:20px;transform:scale(.78);opacity:0;transition:transform .6s cubic-bezier(.22,.68,0,1),opacity .5s ease;box-shadow:0 8px 40px rgba(0,0,0,.08)}
+.cal-panel{background:linear-gradient(135deg,rgba(255,255,255,.54),rgba(255,255,255,.22));backdrop-filter:blur(70px) saturate(2.35) brightness(1.06);-webkit-backdrop-filter:blur(70px) saturate(2.35) brightness(1.06);border:1px solid rgba(255,255,255,.74);border-radius:24px;width:calc(100% - 36px);max-width:380px;padding:20px;transform:scale(.78);opacity:0;transition:transform .6s cubic-bezier(.22,.68,0,1),opacity .5s ease;box-shadow:inset 0 1px 0 rgba(255,255,255,.94),0 24px 70px rgba(55,101,137,.17)}
 .cal-overlay.show .cal-panel{transform:scale(1);opacity:1}
 
 /* Confirm dialog */
-.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.15);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.confirm-overlay{position:fixed;inset:0;background:rgba(235,247,255,.08);backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .confirm-overlay.show{opacity:1;pointer-events:auto}
-.confirm-box{background:rgba(255,255,255,.8);backdrop-filter:blur(50px) saturate(2);-webkit-backdrop-filter:blur(50px) saturate(2);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;width:280px;text-align:center;transform:scale(.9);transition:transform .3s;box-shadow:0 8px 40px rgba(0,0,0,.1)}
+.confirm-box{background:linear-gradient(135deg,rgba(255,255,255,.58),rgba(255,255,255,.26));backdrop-filter:blur(64px) saturate(2.25);-webkit-backdrop-filter:blur(64px) saturate(2.25);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;width:280px;text-align:center;transform:scale(.9);transition:transform .3s;box-shadow:inset 0 1px 0 var(--glass-edge),0 22px 64px rgba(55,101,137,.18)}
 .confirm-overlay.show .confirm-box{transform:scale(1)}
 .confirm-title{font-size:16px;font-weight:600;margin-bottom:8px}
 .confirm-msg{font-size:13px;color:var(--text2);margin-bottom:20px}
 .confirm-btns{display:flex;gap:10px}
 .confirm-btns button{flex:1;padding:10px;border-radius:var(--radius-sm);border:none;font-size:14px;font-weight:600;cursor:pointer}
-.confirm-cancel{background:var(--glass);color:var(--text2)}
+.confirm-cancel{background:var(--glass);color:var(--text2);border:1px solid var(--glass-border)}
 .confirm-ok{background:var(--red);color:#fff}
 
 /* Scrollbar */
@@ -404,11 +400,32 @@ const fmtDateShort=d=>d?`${d.getMonth()+1}/${d.getDate()}`:'--';
 const daysBetween=(a,b)=>Math.floor((b-a)/(86400000));
 const addDays=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r};
 const isSaturday=d=>d.getDay()===6;
-const isSunday=d=>d.getDay()===0;
 function postponeIfSaturday(d){const r=new Date(d);if(isSaturday(r))r.setDate(r.getDate()+1);return r}
 function postponeToFriday(d){const r=new Date(d);if(isSaturday(r))r.setDate(r.getDate()-1);return r}
 const chDate=h=>typeof h==='string'?h:h.date;
+const dateKey=d=>`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 function resolveDay(taskDay,year,month){if(taskDay===-2)return new Date(year,month+1,0).getDate();if(taskDay===-1)return new Date(year,month+1,0).getDate()-1;return taskDay}
+function monthlyMultiTargets(task,year,month){
+  return(task.days||[]).map(day=>{
+    let target=day===1?new Date(year,month+1,1):new Date(year,month,day);
+    target=day===1?postponeIfSaturday(target):postponeToFriday(target);
+    const key=dateKey(target);
+    return{day,target,key,done:task.completions&&task.completions[key]};
+  }).sort((a,b)=>a.target-b.target);
+}
+function latestHistoryIso(task){
+  if(!task.completionHistory||!task.completionHistory.length)return null;
+  let latest=null;
+  task.completionHistory.forEach(h=>{const p=chDate(h).split('-');if(p.length===3){const d=new Date(parseInt(p[0]),parseInt(p[1]),parseInt(p[2]));if(!latest||d>latest)latest=d}});
+  return latest?latest.toISOString():null;
+}
+function xunEntryDateKey(xunKey,entry){
+  const parts=xunKey.split('-').map(Number);
+  if(parts.length!==3||!entry||!entry.date)return null;
+  const match=entry.date.match(/(\d+)月(\d+)日/);
+  if(!match)return null;
+  return `${parts[0]}-${parseInt(match[1])-1}-${parseInt(match[2])}`;
+}
 
 // ===== APP CLASS =====
 class App {
@@ -480,18 +497,6 @@ class App {
     document.querySelectorAll('.nav-item').forEach(n=>{n.classList.toggle('active',n.dataset.page===page)});
     if(page==='pageDashboard')this.renderDashboard();
     if(page==='pageTasks')this.renderTasks();
-  }
-
-  setupAddForm(){document.getElementById('addType').addEventListener('change',()=>this.renderAddConfig());this.renderAddConfig()}
-
-  renderAddConfig(){
-    const type=document.getElementById('addType').value;const el=document.getElementById('addTypeConfig');let html='';
-    if(type==='rolling')html=`<div class="form-group"><label class="form-label">间隔天数</label><input class="form-input" id="addInterval" type="number" min="1" value="3"></div>`;
-    else if(type==='monthly_fixed')html=`<div class="form-row"><div class="form-group"><label class="form-label">每月几号</label><input class="form-input" id="addDay" type="number" min="1" max="31" value="1"></div><div class="form-group"><label class="form-label">遇周六顺延</label><select class="form-select" id="addPostpone"><option value="true">是</option><option value="false">否</option></select></div></div>`;
-    else if(type==='weekly')html=`<div class="form-group"><label class="form-label">每周几</label><select class="form-select" id="addWeekday"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="0">周日</option></select></div>`;
-    else if(type==='monthly旬')html=`<div class="form-group"><label class="form-label">每旬完成一次</label></div>`;
-    else if(type==='monthly_range')html=`<div class="form-row"><div class="form-group"><label class="form-label">第N天之前</label><input class="form-input" id="addBefore" type="number" min="1" max="31" value="15"></div><div class="form-group"><label class="form-label">第N天之后</label><input class="form-input" id="addAfter" type="number" min="1" max="31" value="25"></div></div>`;
-    el.innerHTML=html;
   }
 
   // ===== STATUS CALCULATION =====
@@ -675,29 +680,10 @@ class App {
     if(hasCycle&&today.getDate()>=25){cycleMonth=m;cycleYear=y}
     else if(hasCycle){cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}
     else{cycleMonth=m;cycleYear=y}
-    const targets=[];
-    for(const day of task.days){
-      let target;
-      if(day===1)target=new Date(cycleYear,cycleMonth+1,1);
-      else target=new Date(cycleYear,cycleMonth,day);
-      if(day===1){if(isSaturday(target))target=postponeIfSaturday(target)}
-      else{if(isSaturday(target))target=postponeToFriday(target)}
-      const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;
-      const done=task.completions&&task.completions[key];
-      targets.push({target,key,done});
-    }
+    const targets=monthlyMultiTargets(task,cycleYear,cycleMonth);
     const pending=targets.filter(t=>!t.done);
     if(!pending.length){
-      const nextTargets=[];
-      for(const day of task.days){
-        let target;
-        if(day===1)target=new Date(cycleYear,cycleMonth+2,1);
-        else target=new Date(cycleYear,cycleMonth+1,day);
-        if(day===1){if(isSaturday(target))target=postponeIfSaturday(target)}
-        else{if(isSaturday(target))target=postponeToFriday(target)}
-        const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;
-        nextTargets.push({target,key,done:task.completions&&task.completions[key]});
-      }
+      const nextTargets=monthlyMultiTargets(task,cycleYear,cycleMonth+1);
       const nextPending=nextTargets.filter(t=>!t.done);
       if(!nextPending.length)return{status:'done',label:'本月全部完成',dueDate:null,daysLeft:null,overdue:false};
       const u=nextPending[0];
@@ -783,12 +769,12 @@ class App {
         while(targets.length<task.lastNDays&&d>=1){
           const dt=new Date(y,m,d);
           if(dt.getDay()!==6){
-            targets.push({d:dt,key:`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`});
+            targets.unshift({target:dt,key:dateKey(dt)});
           }
           d--;
         }
         let matched=false;
-        const tdKey=`${targetDate.getFullYear()}-${targetDate.getMonth()}-${targetDate.getDate()}`;
+        const tdKey=dateKey(targetDate);
         for(const t of targets){
           if(t.key===tdKey&&!task.completions[t.key]){task.completions[t.key]=now;matched=true;break}
         }
@@ -804,13 +790,9 @@ class App {
         if(hasCycle&&targetDate.getDate()>=25){cycleMonth=m;cycleYear=y}
         else if(hasCycle){cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}
         else{cycleMonth=m;cycleYear=y}
-        const cycleTargets=[];
-        for(const day of task.days){
-          let d;if(day===1)d=new Date(cycleYear,cycleMonth+1,1);else d=new Date(cycleYear,cycleMonth,day);
-          cycleTargets.push({d,key:`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`});
-        }
+        const cycleTargets=monthlyMultiTargets(task,cycleYear,cycleMonth);
         let matched=false;
-        const tdKey=`${targetDate.getFullYear()}-${targetDate.getMonth()}-${targetDate.getDate()}`;
+        const tdKey=dateKey(targetDate);
         for(const t of cycleTargets){
           if(t.key===tdKey&&!task.completions[t.key]){task.completions[t.key]=now;matched=true;break}
         }
@@ -840,12 +822,12 @@ class App {
     }else{
       task.lastCompleted=targetDate.toISOString();
       if(!task.completionHistory)task.completionHistory=[];
-      const dateStr=`${targetDate.getFullYear()}-${targetDate.getMonth()}-${targetDate.getDate()}`;
+      const dateStr=dateKey(targetDate);
       // Store as object with timestamp for export completeness
       const existing=task.completionHistory.find(h=>(typeof h==='string'?h:h.date)===dateStr);
       if(!existing)task.completionHistory.push({date:dateStr,ts:now});
     }
-    if(task.linkTo){const linked=this.tasks.find(t=>t.id===task.linkTo);if(linked){linked.lastCompleted=targetDate.toISOString();if(!linked.completionHistory)linked.completionHistory=[];const ds=`${targetDate.getFullYear()}-${targetDate.getMonth()}-${targetDate.getDate()}`;const ex=linked.completionHistory.find(h=>(typeof h==='string'?h:h.date)===ds);if(!ex)linked.completionHistory.push({date:ds,ts:now});this.toast('✅ 已联动重置 ATM清机 计时')}}
+    if(task.linkTo){const linked=this.tasks.find(t=>t.id===task.linkTo);if(linked){linked.lastCompleted=targetDate.toISOString();if(!linked.completionHistory)linked.completionHistory=[];const ds=dateKey(targetDate);const ex=linked.completionHistory.find(h=>(typeof h==='string'?h:h.date)===ds);if(!ex)linked.completionHistory.push({date:ds,ts:now,linkedFrom:task.id});this.toast('✅ 已联动重置 ATM清机 计时')}}
     this.save();this.render();
     if(!fromCard)this.toast('✅ 任务已完成');else this.toast('✅ 已完成');
   }
@@ -853,22 +835,23 @@ class App {
   // ===== UNDO COMPLETE =====
   undoComplete(taskId){
     const task=this.tasks.find(t=>t.id===taskId);if(!task)return;
+    let linkedDate=null;
     if(task.type==='monthly_multi'){
       // Undo the most recent completion
-      if(task.completions){const keys=Object.keys(task.completions);if(keys.length){delete task.completions[keys[keys.length-1]]}}
+      if(task.completions){const keys=Object.keys(task.completions).sort((a,b)=>{const ta=task.completions[a],tb=task.completions[b];return String(ta).localeCompare(String(tb))});if(keys.length){delete task.completions[keys[keys.length-1]]}}
     }else if(task.type==='旬'){
-      if(task.completions){const keys=Object.keys(task.completions).filter(k=>k.startsWith(`${TODAY().getFullYear()}-${TODAY().getMonth()}`));if(keys.length){const lastKey=keys[keys.length-1];const entries=task.completions[lastKey];if(Array.isArray(entries)&&entries.length>0){entries.pop();if(!entries.length)delete task.completions[lastKey]}else{delete task.completions[lastKey]}}}
+      if(task.completions){const keys=Object.keys(task.completions).filter(k=>k.startsWith(`${TODAY().getFullYear()}-${TODAY().getMonth()}`)).sort();if(keys.length){const lastKey=keys[keys.length-1];const entries=task.completions[lastKey];if(Array.isArray(entries)&&entries.length>0){const removed=entries[entries.length-1];linkedDate=xunEntryDateKey(lastKey,removed);entries.pop();if(!entries.length)delete task.completions[lastKey]}else{linkedDate=xunEntryDateKey(lastKey,entries);delete task.completions[lastKey]}}}
       // Also clear lastCompleted if no more completions this month
       const monthKeys=Object.keys(task.completions||{}).filter(k=>k.startsWith(`${TODAY().getFullYear()}-${TODAY().getMonth()}`));
       if(!monthKeys.length)task.lastCompleted=null;
     }else if(task.type==='monthly_range'){
-      if(task.partCompletions){const keys=Object.keys(task.partCompletions);if(keys.length){delete task.partCompletions[keys[keys.length-1]]}}
+      if(task.partCompletions){const keys=Object.keys(task.partCompletions).sort();if(keys.length){delete task.partCompletions[keys[keys.length-1]]}}
     }else{
-      if(task.completionHistory&&task.completionHistory.length)task.completionHistory.pop();
+      if(task.completionHistory&&task.completionHistory.length){const removed=task.completionHistory.pop();linkedDate=chDate(removed)}
       task.lastCompleted=null;
     }
-    // Reverse link: if task has linkTo, undo the linked task's lastCompleted + completionHistory
-    if(task.linkTo){const linked=this.tasks.find(t=>t.id===task.linkTo);if(linked){linked.lastCompleted=null;if(linked.completionHistory)linked.completionHistory=[];this.toast('↩️ 已联动撤销 ATM清机 重置')}}
+    // Reverse only the linked record for the same completion date.
+    if(task.linkTo&&linkedDate){const linked=this.tasks.find(t=>t.id===task.linkTo);if(linked){if(linked.completionHistory)linked.completionHistory=linked.completionHistory.filter(h=>chDate(h)!==linkedDate);linked.lastCompleted=latestHistoryIso(linked);this.toast('↩️ 已联动撤销 ATM清机 重置')}}
     this.save();this.render();this.openDetail(taskId);this.toast('↩️ 已撤销完成');
   }
 
@@ -914,7 +897,7 @@ class App {
         return true;
       }
       if(!task.days)return false;
-      return task.days.every(day=>{let d;if(day===1)d=new Date(y,m+1,1);else d=new Date(y,m,day);const key=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;return!!task.completions[key]});
+      return monthlyMultiTargets(task,y,m).every(t=>!!task.completions[t.key]);
     }
     if(task.type==='weekly'&&task.multiCompletion){
       if(!task.completionHistory)return false;
@@ -925,7 +908,7 @@ class App {
   }
 
   renderDashboard(){
-    const today=TODAY();const active=this.tasks;
+    const active=this.tasks;
     const overdue=[],upcoming=[],done=[];
     active.forEach(task=>{const s=this.getTaskStatus(task);task._status=s;
       if(s.status==='overdue')overdue.push(task);
@@ -937,7 +920,6 @@ class App {
       else if(s.status==='soon'||(s.daysLeft!==null&&s.daysLeft<=3))upcoming.push(task);
       else if(s.status==='ok')upcoming.push(task);
     });
-    const sevOrder={red:0,yellow:1,green:2};
     // 待处理：逾期在前，再按剩余时间短→长
     overdue.sort((a,b)=>{
       if(a._status.overdue!==b._status.overdue)return a._status.overdue?-1:1;
@@ -996,7 +978,7 @@ class App {
       const dc=[1,2,3].filter(i=>{const k=`${yy}-${mm}-${i}`;const v=task.completions?.[k];return v&&(Array.isArray(v)?v.length>0:true)}).length;
       for(let i=0;i<3;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>';progText=dc+'/3'
     }else if(task.type==='monthly_multi'&&task.days&&task.days.length){
-      const dc=task.days.filter(d=>{let t;if(d===1)t=new Date(yy,mm+1,1);else t=new Date(yy,mm,d);const k=`${t.getFullYear()}-${t.getMonth()}-${t.getDate()}`;return task.completions?.[k]}).length;
+      const dc=monthlyMultiTargets(task,yy,mm).filter(t=>task.completions?.[t.key]).length;
       for(let i=0;i<task.days.length;i++)dots+='<span class="prog-dot '+(i<dc?'prog-on':'prog-off')+'"></span>';progText=dc+'/'+task.days.length
     }else if(task.multiCompletion&&(task.type==='weekly'||task.monthlyTarget)){
       const mxt=task.monthlyTarget||4;const dc=task.completionHistory?task.completionHistory.filter(h=>{const p=chDate(h).split('-');return parseInt(p[0])===yy&&parseInt(p[1])===mm}).length:0;
@@ -1013,8 +995,6 @@ class App {
       <div class="card-done-btn" onclick="event.stopPropagation();app.quickDone('${task.id}')">✓</div>
     </div>`;
   }
-
-  sevLabel(s){return''}
 
   quickDone(taskId){
     // Direct complete today (no calendar)
@@ -1159,7 +1139,7 @@ class App {
   // ===== TASKS PAGE =====
   renderTasks(){
     const groups={rolling:{label:'🔄 滚动任务',tasks:[]},monthly:{label:'📅 月度任务',tasks:[]},weekly:{label:'📆 每周任务',tasks:[]}};
-    this.tasks.forEach(t=>{if(t.type==='weekly')groups.weekly.tasks.push(t);else groups.monthly.tasks.push(t)});
+    this.tasks.forEach(t=>{if(t.type==='rolling')groups.rolling.tasks.push(t);else if(t.type==='weekly')groups.weekly.tasks.push(t);else groups.monthly.tasks.push(t)});
     let html='';
     Object.entries(groups).forEach(([key,group])=>{
       if(!group.tasks.length)return;
@@ -1178,7 +1158,35 @@ class App {
     if(task.desc)html+=`<div class="modal-section"><div class="modal-section-title">说明</div><div class="modal-note">${task.desc}</div></div>`;
     if(task.hasPersistentNote&&task.note)html+=`<div class="modal-section"><div class="modal-section-title">📋 操作备注（常驻）</div><div class="modal-note">${task.note}</div></div>`;
 
-    if(task.type==='monthly_multi'){const today=new Date(),m=today.getMonth(),y=today.getFullYear();if(task.lastNDays){const monthEnd=new Date(y,m+1,0);const lastDay=monthEnd.getDate();html+=`<div class="modal-section"><div class="modal-section-title">各节点状态（跳过周六）</div>`;let cnt=0,d=lastDay;while(cnt<task.lastNDays&&d>=1){const dt=new Date(y,m,d);if(dt.getDay()!==6){const key=`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(dt)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`;cnt++}d--}html+=`</div>`}else{const hasCycle=task.days&&task.days.some(d=>d>=25);let cycleMonth,cycleYear;if(hasCycle&&today.getDate()>=25){cycleMonth=m;cycleYear=y}else if(hasCycle){cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}else{cycleMonth=m;cycleYear=y}html+=`<div class="modal-section"><div class="modal-section-title">各节点状态</div>`;task.days.forEach(day=>{let target;if(day===1)target=new Date(cycleYear,cycleMonth+1,1);else target=new Date(cycleYear,cycleMonth,day);const key=`${target.getFullYear()}-${target.getMonth()}-${target.getDate()}`;const done=task.completions&&task.completions[key];html+=`<div class="modal-info-row"><span class="label">${fmtDate(target)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`});html+=`</div>`}}
+    if(task.type==='monthly_multi'){
+      const today=new Date(),m=today.getMonth(),y=today.getFullYear();
+      if(task.lastNDays){
+        const monthEnd=new Date(y,m+1,0);const lastDay=monthEnd.getDate();
+        html+=`<div class="modal-section"><div class="modal-section-title">各节点状态（跳过周六）</div>`;
+        let cnt=0,d=lastDay;
+        while(cnt<task.lastNDays&&d>=1){
+          const dt=new Date(y,m,d);
+          if(dt.getDay()!==6){
+            const key=dateKey(dt);const done=task.completions&&task.completions[key];
+            html+=`<div class="modal-info-row"><span class="label">${fmtDate(dt)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`;
+            cnt++;
+          }
+          d--;
+        }
+        html+=`</div>`;
+      }else{
+        const hasCycle=task.days&&task.days.some(d=>d>=25);let cycleMonth,cycleYear;
+        if(hasCycle&&today.getDate()>=25){cycleMonth=m;cycleYear=y}
+        else if(hasCycle){cycleMonth=m===0?11:m-1;cycleYear=m===0?y-1:y}
+        else{cycleMonth=m;cycleYear=y}
+        html+=`<div class="modal-section"><div class="modal-section-title">各节点状态</div>`;
+        monthlyMultiTargets(task,cycleYear,cycleMonth).forEach(target=>{
+          const done=task.completions&&task.completions[target.key];
+          html+=`<div class="modal-info-row"><span class="label">${fmtDate(target.target)}</span><span class="value" style="color:${done?'var(--green)':'var(--red)'}">${done?'✅ 已完成':'🔴 待完成'}</span></div>`;
+        });
+        html+=`</div>`;
+      }
+    }
     if(task.type==='旬'){const m=new Date().getMonth(),y=new Date().getFullYear();if(!task.completions)task.completions={};html+=`<div class="modal-section"><div class="modal-section-title">本月各旬状态</div>`;const xunLabels=['第1旬（1-10号）','第2旬（11-20号）','第3旬（21-月末）'];xunLabels.forEach((label,i)=>{const key=`${y}-${m}-${i+1}`;const raw=task.completions[key];const arr=Array.isArray(raw)?raw:raw?[raw]:[];const display=arr.length?arr.map(r=>r.date||'已完成').join(' + '):null;html+=`<div class="modal-info-row"><span class="label">${label}</span><span class="value" style="color:${arr.length?'var(--green)':'var(--text3)'}">${arr.length?'✅ '+display:'⬜ 待完成'}</span></div>`});html+=`</div>`}
     if(task.type==='weekly'&&task.multiCompletion&&task.weekStart!==undefined){
       const m=new Date().getMonth(),y=new Date().getFullYear();
@@ -1338,18 +1346,6 @@ class App {
     sec.replaceWith(newCal);
   }
 
-  addTask(){
-    const name=document.getElementById('addName').value.trim();if(!name){this.toast('⚠️ 请输入任务名称');return}
-    const type=document.getElementById('addType').value;const severity=document.getElementById('addSeverity').value;const note=document.getElementById('addNote').value.trim();
-    const task={id:'custom_'+Date.now(),name,type,severity,reviews:[],note:'',lastCompleted:null};
-    if(type==='rolling'){task.intervalDays=parseInt(document.getElementById('addInterval')?.value)||3;task.typeLabel=`滚动 · 每${task.intervalDays}天`;task.desc=`每隔${task.intervalDays}天完成一次`}
-    else if(type==='monthly_fixed'){task.day=parseInt(document.getElementById('addDay')?.value)||1;task.postponeSat=document.getElementById('addPostpone')?.value==='true';task.typeLabel=`月度 · 每月${task.day}号`;task.desc=`每月${task.day}号${task.postponeSat?'，遇周六顺延':''}`}
-    else if(type==='weekly'){task.weekday=parseInt(document.getElementById('addWeekday')?.value)||5;const dn=['日','一','二','三','四','五','六'];task.typeLabel=`每周 · 周${dn[task.weekday]}`;task.desc=`每周${dn[task.weekday]}完成`}
-    else if(type==='monthly旬'){task.type='旬';task.multiCompletion=true;task.typeLabel='月度 · 每旬';task.desc='每月3次，每旬完成一次'}
-    else if(type==='monthly_range'){task.type='monthly_range';task.multiCompletion=true;task.monthParts=[{label:'第1篇',before:parseInt(document.getElementById('addBefore')?.value)||15},{label:'第2篇',after:parseInt(document.getElementById('addAfter')?.value)||25}];task.partCompletions={};task.typeLabel='月度 · 范围';task.desc=`第1篇${task.monthParts[0].before}号前，第2篇${task.monthParts[1].after}号后`}
-    this.tasks.push(task);this.save();this.render();document.getElementById('addName').value='';document.getElementById('addNote').value='';this.toast('✅ 任务已添加');this.switchPage('pageDashboard');
-  }
-
   deleteTask(taskId){this.showConfirm('删除任务','确定要删除这个任务吗？此操作不可恢复。',()=>{this.tasks=this.tasks.filter(t=>t.id!==taskId);this.save();this.closeDetail();this.render();this.toast('🗑️ 任务已删除')})}
 
   exportData(){
@@ -1363,7 +1359,7 @@ class App {
       // monthly_multi: completions
       if(t.completions&&t.type==='monthly_multi'){Object.keys(t.completions).sort().forEach(k=>{records.push({date:k,time:t.completions[k]})})}
       // rolling/weekly/safety_check: completionHistory
-      if(t.completionHistory){t.completionHistory.forEach(h=>{const ds=chDate(h);const ts=typeof h==='string'?null:h.ts;const p=ds.split('-');records.push({date:`${p[0]}/${parseInt(p[1])+1}/${parseInt(p[2])+1}`,time:ts||'仅日期'})})}
+      if(t.completionHistory){t.completionHistory.forEach(h=>{const ds=chDate(h);const ts=typeof h==='string'?null:h.ts;const p=ds.split('-');records.push({date:`${p[0]}/${parseInt(p[1])+1}/${parseInt(p[2])}`,time:ts||'仅日期'})})}
       return{名称:t.name,类型:t.type,完成记录:records.length?records:'无记录'};
     });
     const data=JSON.stringify({tasks:this.tasks,summary,exportedAt:new Date().toISOString()},null,2);
