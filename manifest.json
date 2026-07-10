@@ -1,8 +1,8 @@
 {
   "name": "运营RUSH",
   "short_name": "运营RUSH",
-  "version": "20260710-1846",
-  "start_url": "./index.html?v=20260710-1846",
+  "version": "20260710-1852",
+  "start_url": "./index.html?v=20260710-1852",
   "display": "standalone",
   "background_color": "#eef7ff",
   "theme_color": "#eef7ff",
