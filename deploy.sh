@@ -1,9 +1,9 @@
 #!/bin/bash
-# 运营RUSH 自动部署脚本
+# 床头柜整理清单自动部署脚本
 # 用法: bash deploy.sh "提交信息"
 set -e
 
-REPO="/home/oiio/Codex的工作台/运营RUSH"
+REPO="$(cd "$(dirname "$0")" && pwd)"
 COMMIT_MSG="${1:-auto deploy}"
 
 # 1. 生成时间戳（北京时间）

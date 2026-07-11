@@ -1,8 +1,9 @@
 {
-  "name": "运营RUSH",
-  "short_name": "运营RUSH",
-  "version": "20260710-1852",
-  "start_url": "./index.html?v=20260710-1852",
+  "name": "床头柜整理清单",
+  "short_name": "床头柜清单",
+  "description": "床头柜尺寸、收纳、保养和摆放记录工具。",
+  "version": "20260711-1929",
+  "start_url": "./index.html?v=20260711-1929",
   "display": "standalone",
   "background_color": "#eef7ff",
   "theme_color": "#eef7ff",
